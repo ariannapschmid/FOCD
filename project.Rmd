@@ -43,7 +43,14 @@ library(gtrendsR)
 ```
 
 ```{r}
-test <- gtrends(c("COVID-19 + vaccine + DNA"), geo = "US-IL", 
-               time = "2021-06-30 2021-07-30", low_search_volume = T)
-plot(test)
+
+# will the keywords below capture searches like "will the covid-19 vaccine damage my dna" and other variants of that question? or do I remove the addition sign?
+
+il <- gtrends(c("COVID-19 + vaccine + DNA"), geo = "US-IL", 
+               time = "2021-06-30 2021-07-30", low_search_volume = F)
+plot(il) 
+str(il)
+il_time <- il$interest_over_time %>%
+      as_tibble()
+glimpse(il_time)
 ```
