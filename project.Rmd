@@ -1,6 +1,6 @@
 ---
 title: "project"
-author: "Arianna Schmid"
+author: "Arianna Schmid, Stacey Frank"
 date: "10/18/2021"
 output: html_document
 ---
