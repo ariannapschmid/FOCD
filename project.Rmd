@@ -35,3 +35,15 @@ uneducated <- read_html("https://www.cdc.gov/coronavirus/2019-ncov/vaccines/fact
   html_text()
 uneducated # the result is a list of 30 uneducated questions
 ```
+
+```{r echo=T, results='hide', message=FALSE}
+# practice with gtrends
+if (!require(gtrendsR)) install.packages("gtrendsR", repos = "http://cran.us.r-project.org")
+library(gtrendsR)
+```
+
+```{r}
+test <- gtrends(c("COVID-19 + vaccine + DNA"), geo = "US-IL", 
+               time = "2021-06-30 2021-07-30", low_search_volume = T)
+plot(test)
+```
