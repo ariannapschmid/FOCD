@@ -43,14 +43,28 @@ library(gtrendsR)
 ```
 
 ```{r}
-
 # will the keywords below capture searches like "will the covid-19 vaccine damage my dna" and other variants of that question? or do I remove the addition sign?
 
-il <- gtrends(c("COVID-19 + vaccine + DNA"), geo = "US-IL", 
-               time = "2021-06-30 2021-07-30", low_search_volume = F)
-plot(il) 
-str(il)
-il_time <- il$interest_over_time %>%
+us <- gtrends(c("COVID-19 + vaccine + DNA"), geo = "US", 
+               time = "2021-06-24 2021-06-29", low_search_volume = F)
+plot(us) 
+str(us)
+us_time <- us$interest_over_time %>%
       as_tibble()
-glimpse(il_time)
+glimpse(us_time)
+```
+
+```{r}
+
+#hits for search keyword by state
+us_state <- us$interest_by_region %>%
+      as_tibble()
+
+#hits for search keyword by metro area
+us_metro <- us$interest_by_dma %>%
+      as_tibble()
+
+#hits for search keyword by city
+us_city <- us$interest_by_city %>%
+      as_tibble()
 ```
