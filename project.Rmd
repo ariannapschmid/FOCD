@@ -25,15 +25,15 @@ library(magrittr)
 paths_allowed("https://www.cdc.gov/coronavirus/2019-ncov/vaccines/faq.html")
 url <- read_html("https://www.cdc.gov/coronavirus/2019-ncov/vaccines/faq.html")  
 nds <- html_nodes(url, xpath = '//*[contains(concat( " ", @class, " " ), concat( " ", "btn-link", " " ))]//span')
-educated <- html_text(nds)
-educated # scraped unnecessary contact info for cdc. Only need 1st 30 elements
-educated <- educated[1:30] # the result is a list of 30 educated questions
+common <- html_text(nds)
+common # scraped unnecessary contact info for cdc. Only need 1st 30 elements
+common <- common[1:30] # the result is a list of 30 educated/common vaccine questions
 
 # scraping myths/uneducated questions from cdc website
-uneducated <- read_html("https://www.cdc.gov/coronavirus/2019-ncov/vaccines/facts.html") %>%
+myths <- read_html("https://www.cdc.gov/coronavirus/2019-ncov/vaccines/facts.html") %>%
   html_nodes(xpath = '//*[(@id = "accordion-2-card-4")]//span | //*[(@id = "accordion-2-card-3")]//span |    //*[(@id = "accordion-2-card-2")]//span | //*[(@id = "accordion-2-card-1")]//span | //*[contains(concat( " ", @class, " " ), concat( " ", "h4", " " ))]//strong') %>% 
   html_text()
-uneducated # the result is a list of 30 uneducated questions
+  myths # the result is a list of 11 uneducated questions/myths
 ```
 
 ```{r echo=T, results='hide', message=FALSE}
@@ -45,7 +45,7 @@ library(gtrendsR)
 ```{r}
 # will the keywords below capture searches like "will the covid-19 vaccine damage my dna" and other variants of that question? or do I remove the addition sign?
 
-us <- gtrends(c("COVID-19 + vaccine + DNA"), geo = "US", 
+us <- gtrends(c("COVID-19 + vaccine + alter + DNA"), geo = "US", 
                time = "2021-06-24 2021-06-29", low_search_volume = F)
 plot(us) 
 str(us)
@@ -59,6 +59,7 @@ glimpse(us_time)
 #hits for search keyword by state
 us_state <- us$interest_by_region %>%
       as_tibble()
+glimpse(us_state)
 
 #hits for search keyword by metro area
 us_metro <- us$interest_by_dma %>%
