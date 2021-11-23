@@ -34,6 +34,16 @@ myths <- read_html("https://www.cdc.gov/coronavirus/2019-ncov/vaccines/facts.htm
   html_nodes(xpath = '//*[(@id = "accordion-2-card-4")]//span | //*[(@id = "accordion-2-card-3")]//span |    //*[(@id = "accordion-2-card-2")]//span | //*[(@id = "accordion-2-card-1")]//span | //*[contains(concat( " ", @class, " " ), concat( " ", "h4", " " ))]//strong') %>% 
   html_text()
   myths # the result is a list of 11 uneducated questions/myths
+  
+  
+# clean the lists:remove stopwords, turn into lowercase, remove blank space, and add + sign to set up for gtrends search afterwards
+myths = tolower(myths)
+all_stops <- c(stopwords("en"), "can","will","near","get","united states","use", "like")
+myths_clean <- removeWords(myths,all_stops)
+myths_clean %<>% str_trim()
+myths_clean <- gsub("\\s+"," + ", myths_clean)
+myths_clean
+  
 ```
 
 ```{r echo=T, results='hide', message=FALSE}
