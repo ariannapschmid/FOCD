@@ -18,6 +18,7 @@ library(robotstxt)
 library(RSocrata)
 library(tidyverse)
 library(magrittr)
+library(gtrendsR)
 ```
 
 ``` {r}
@@ -46,17 +47,11 @@ myths_clean
   
 ```
 
-```{r echo=T, results='hide', message=FALSE}
-# practice with gtrends
-if (!require(gtrendsR)) install.packages("gtrendsR", repos = "http://cran.us.r-project.org")
-library(gtrendsR)
-```
-
 ```{r}
 # will the keywords below capture searches like "will the covid-19 vaccine damage my dna" and other variants of that question? or do I remove the addition sign?
 
-us <- gtrends(c("COVID-19 + vaccine + alter + DNA"), geo = "US", 
-               time = "2021-06-24 2021-06-29", low_search_volume = F)
+us <- gtrends(c("covid vaccine DNA"), geo = "US", 
+               time = "2021-05-1 2021-06-29", low_search_volume = T)
 plot(us) 
 str(us)
 us_time <- us$interest_over_time %>%
