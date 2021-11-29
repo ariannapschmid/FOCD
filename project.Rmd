@@ -87,6 +87,7 @@ cdc.df <- read.socrata(
   email     = "stacey.m.frank@gmail.com",
   password  = "fN7E27&3K0Uf"
 )
+<<<<<<< HEAD
 ```
 
 
@@ -199,8 +200,134 @@ cdc.df.50 %>%
 
 vax.June30 <- cdc.df.50 %>%
   filter(date == "2021-06-30")
+||||||| merged common ancestors
+=======
+```
+
+
+```{r}
+##Data formatting/cleaning for CDC dataset
+
+str(cdc.df)
+
+apply(is.na(cdc.df), 2, sum)
+
+cdc.df <- cdc.df %>% 
+     mutate_at(c(4:80), as.numeric)
+
+cdc.df$mmwr_week <- as.numeric(cdc.df$mmwr_week)
+
+str(cdc.df)
+
+apply(is.na(cdc.df), 2, sum)
+```
+
+
+```{r}
+#Drop rows for territories and federal entities; only retain 50 states and Washington, DC (Google trends only has data for these entities)
+
+table(cdc.df$location)
+
+
+attach(cdc.df)
+cdc.df.50 <-  cdc.df[ which (location!= "BP2" & location!= "DD2" & location!= "GU" & location!= "IH2" & location!= "LTC" & location!= "MH" & location!= "AS" & location!= "FM" & location!= "MP" & location!= "RP" & location!= "US" & location!= "VA2" & location!= "VI" & location!= "PR"),]
+detach(cdc.df)
+
+table(cdc.df.50$location)
+```
+
+>>>>>>> test
+
+<<<<<<< HEAD
+vax.Sept21 <- cdc.df.50 %>%
+  filter(date == "2021-09-21")
+||||||| merged common ancestors
+=======
+```{r}
+#Recode responses in CDC location variable so it matches the format used in Google Trends data, in preparation for joining datasets
+
+cdc.df.50$location[cdc.df.50$location == "AK"] <- "Alaska"
+cdc.df.50$location[cdc.df.50$location == "AL"] <- "Alabama"
+cdc.df.50$location[cdc.df.50$location == "AR"] <- "Arkansas"
+cdc.df.50$location[cdc.df.50$location == "AZ"] <- "Arizona"
+cdc.df.50$location[cdc.df.50$location == "CA"] <- "California"
+cdc.df.50$location[cdc.df.50$location == "CO"] <- "Colorado"
+cdc.df.50$location[cdc.df.50$location == "CT"] <- "Connecticut"
+cdc.df.50$location[cdc.df.50$location == "DC"] <- "District of Columbia"
+cdc.df.50$location[cdc.df.50$location == "DE"] <- "Delaware"
+cdc.df.50$location[cdc.df.50$location == "FL"] <- "Florida"
+cdc.df.50$location[cdc.df.50$location == "GA"] <- "Georgia"
+cdc.df.50$location[cdc.df.50$location == "HI"] <- "Hawaii"
+cdc.df.50$location[cdc.df.50$location == "IA"] <- "Iowa"
+cdc.df.50$location[cdc.df.50$location == "ID"] <- "Idaho"
+cdc.df.50$location[cdc.df.50$location == "IL"] <- "Illinois"
+cdc.df.50$location[cdc.df.50$location == "IN"] <- "Indiana"
+cdc.df.50$location[cdc.df.50$location == "KS"] <- "Kansas"
+cdc.df.50$location[cdc.df.50$location == "KY"] <- "Kentucky"
+cdc.df.50$location[cdc.df.50$location == "LA"] <- "Louisiana"
+cdc.df.50$location[cdc.df.50$location == "MA"] <- "Massachusetts"
+cdc.df.50$location[cdc.df.50$location == "MD"] <- "Maryland"
+cdc.df.50$location[cdc.df.50$location == "ME"] <- "Maine"
+cdc.df.50$location[cdc.df.50$location == "MI"] <- "Michigan"
+cdc.df.50$location[cdc.df.50$location == "MN"] <- "Minnesota"
+cdc.df.50$location[cdc.df.50$location == "MO"] <- "Missouri"
+cdc.df.50$location[cdc.df.50$location == "MS"] <- "Mississippi"
+cdc.df.50$location[cdc.df.50$location == "MT"] <- "Montana"
+cdc.df.50$location[cdc.df.50$location == "NC"] <- "North Carolina"
+cdc.df.50$location[cdc.df.50$location == "ND"] <- "North Dakota"
+cdc.df.50$location[cdc.df.50$location == "NE"] <- "Nebraska"
+cdc.df.50$location[cdc.df.50$location == "NH"] <- "New Hampshire"
+cdc.df.50$location[cdc.df.50$location == "NJ"] <- "New Jersey"
+cdc.df.50$location[cdc.df.50$location == "NM"] <- "New Mexico"
+cdc.df.50$location[cdc.df.50$location == "NV"] <- "Nevada"
+cdc.df.50$location[cdc.df.50$location == "NY"] <- "New York"
+cdc.df.50$location[cdc.df.50$location == "OH"] <- "Ohio"
+cdc.df.50$location[cdc.df.50$location == "OK"] <- "Oklahoma"
+cdc.df.50$location[cdc.df.50$location == "OR"] <- "Oregon"
+cdc.df.50$location[cdc.df.50$location == "PA"] <- "Pennsylvania"
+cdc.df.50$location[cdc.df.50$location == "RI"] <- "Rhode Island"
+cdc.df.50$location[cdc.df.50$location == "SC"] <- "South Carolina"
+cdc.df.50$location[cdc.df.50$location == "SD"] <- "South Dakota"
+cdc.df.50$location[cdc.df.50$location == "TN"] <- "Tennessee"
+cdc.df.50$location[cdc.df.50$location == "TX"] <- "Texas"
+cdc.df.50$location[cdc.df.50$location == "UT"] <- "Utah"
+cdc.df.50$location[cdc.df.50$location == "VA"] <- "Virginia"
+cdc.df.50$location[cdc.df.50$location == "VT"] <- "Vermont"
+cdc.df.50$location[cdc.df.50$location == "WA"] <- "Washington"
+cdc.df.50$location[cdc.df.50$location == "WI"] <- "Wisconsin"
+cdc.df.50$location[cdc.df.50$location == "WV"] <- "West Virginia"
+cdc.df.50$location[cdc.df.50$location == "WY"] <- "Wyoming"
+
+table(cdc.df.50$location)
+
+```
+
+
+```{r}
+#visualize doses administered over time for entire US
+
+cdc.df.50 %>%
+  group_by(date) %>%
+  summarize(administered = sum(administered)) %>%
+  ggplot() +
+  geom_line(mapping = aes(x = date, y = administered))
+
+```
+
+
+```{r}
+##Create two datasets for our vaccination dates of interest
+
+vax.June30 <- cdc.df.50 %>%
+  filter(date == "2021-06-30")
+>>>>>>> test
 
 vax.Sept21 <- cdc.df.50 %>%
   filter(date == "2021-09-21")
 
+```
+
+
+```{r}
+test
 ```
