@@ -320,7 +320,7 @@ cdc.df.50 %>%
 
 vax.June30 <- cdc.df.50 %>%
   filter(date == "2021-06-30")
->>>>>>> test
+
 
 vax.Sept21 <- cdc.df.50 %>%
   filter(date == "2021-09-21")
@@ -329,5 +329,5 @@ vax.Sept21 <- cdc.df.50 %>%
 
 
 ```{r}
-test
+test123
 ```
