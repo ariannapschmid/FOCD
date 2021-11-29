@@ -49,6 +49,7 @@ myths_clean
 
 ```{r}
 # will the keywords below capture searches like "will the covid-19 vaccine damage my dna" and other variants of that question? or do I remove the addition sign?
+#Info about keyword searches: https://github.com/PMassicotte/gtrendsR/issues/268
 
 us <- gtrends(c("covid vaccine DNA"), geo = "US", 
                time = "2021-05-1 2021-06-29", low_search_volume = T)
@@ -60,7 +61,6 @@ glimpse(us_time)
 ```
 
 ```{r}
-
 #hits for search keyword by state
 us_state <- us$interest_by_region %>%
       as_tibble()
@@ -73,4 +73,20 @@ us_metro <- us$interest_by_dma %>%
 #hits for search keyword by city
 us_city <- us$interest_by_city %>%
       as_tibble()
+```
+
+
+```{r}
+##Use RSocrata to pull down CDC COVID vaccine data using their API
+##Dataset information available here: https://dev.socrata.com/foundry/data.cdc.gov/unsk-b7fc
+##https://data.cdc.gov/Vaccinations/COVID-19-Vaccinations-in-the-United-States-Jurisdi/unsk-b7fc
+
+cdc.df <- read.socrata(
+  "https://data.cdc.gov/resource/unsk-b7fc.json",
+  app_token = "vUEGablI1SjS2eGix6O89iNgH",
+  email     = "stacey.m.frank@gmail.com",
+  password  = "fN7E27&3K0Uf"
+)
+
+
 ```
