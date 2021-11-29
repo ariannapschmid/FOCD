@@ -209,8 +209,9 @@ vax.Sept21 <- cdc.df.50 %>%
 
 
 ```{r}
+# Arianna's code 11/29/21 below: 
 
-# get state and populatino info from wikipedia. Turn into a frame called state_pop
+# get state and population info from wikipedia. Turn into a frame called state_pop
 paths_allowed("https://simple.wikipedia.org/wiki/List_of_U.S._states_by_population")
 url <- read_html("https://simple.wikipedia.org/wiki/List_of_U.S._states_by_population")  
 nds <- html_nodes(url, xpath = '//td[(((count(preceding-sibling::*) + 1) = 3) and parent::*)]')
