@@ -116,6 +116,41 @@ hits_results <- Keyword1$interest_by_region %>%
   as_tibble() %>%
   select(-c(4,5,8,9,12,13,16,17,20,21,24,25,28,29,32,33,36,37,40,41))
 
+hits_results %<>% rename( hits.1 = hits.x, 
+                          hits.2 = hits.y,
+                          hits.3 =  hits.x.x,
+                          hits.4 =  hits.y.y,
+                          hits.5 =  hits.x.x.x,
+                          hits.6 =  hits.y.y.y,
+                          hits.7 =  hits.x.x.x.x,
+                          hits.8 =  hits.y.y.y.y,
+                          hits.9 = hits.x.x.x.x.x,
+                          hits.10 = hits.y.y.y.y.y,
+                        
+                          keyword.1 = keyword.x, 
+                          keyword.2 = keyword.y,
+                          keyword.3 =  keyword.x.x,
+                          keyword.4 =  keyword.y.y,
+                          keyword.5 =  keyword.x.x.x,
+                          keyword.6 =  keyword.y.y.y,
+                          keyword.7 =  keyword.x.x.x.x,
+                          keyword.8 =  keyword.y.y.y.y,
+                          keyword.9 = keyword.x.x.x.x.x,
+                          keyword.10 = keyword.y.y.y.y.y
+                )
+
+hits_results %<>% select(-c( keyword.1, 
+                            keyword.2, 
+                            keyword.3,
+                            keyword.4, 
+                            keyword.5, 
+                            keyword.6, 
+                            keyword.7, 
+                            keyword.8, 
+                            keyword.9,  
+                            keyword.10
+                          )
+                        )
 ```
 
 
