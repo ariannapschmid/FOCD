@@ -81,6 +81,43 @@ glimpse(safe2_state)
 
 ```
 
+```{r}
+
+k <- c("covid vaccine safe", 
+"covid vaccine ingredients", 
+"covid vaccine pregnant", 
+"covid vaccine protect", 
+"covid vaccine side effects", 
+"covid vaccine microchip", 
+"covid vaccine dna", 
+"covid vaccine fetal", 
+"covid vaccine infertility", 
+"covid vaccine magnet")
+
+
+for (i in 1:length(k)){
+      new_frame <- paste("Keyword",i,sep = "")
+      assign(new_frame, gtrends(k[i], geo = "US",
+               time = "2021-01-1 2021-09-20", low_search_volume = T)
+             )
+}
+
+
+hits_results <- Keyword1$interest_by_region %>%
+  left_join(Keyword2$interest_by_region, by = "location") %>%
+  left_join(Keyword3$interest_by_region, by = "location") %>%
+  left_join(Keyword4$interest_by_region, by = "location") %>%
+  left_join(Keyword5$interest_by_region, by = "location") %>%
+  left_join(Keyword6$interest_by_region, by = "location") %>%
+  left_join(Keyword7$interest_by_region, by = "location") %>%
+  left_join(Keyword8$interest_by_region, by = "location") %>%
+  left_join(Keyword9$interest_by_region, by = "location") %>%
+  left_join(Keyword10$interest_by_region, by = "location") %>%
+  as_tibble() %>%
+  select(-c(4,5,8,9,12,13,16,17,20,21,24,25,28,29,32,33,36,37,40,41))
+
+```
+
 
 ```{r}
 ##Use RSocrata to pull down CDC COVID vaccine data using their API
