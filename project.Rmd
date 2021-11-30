@@ -52,28 +52,21 @@ myths_clean
 # will the keywords below capture searches like "will the covid-19 vaccine damage my dna" and other variants of that question? or do I remove the addition sign?
 #Info about keyword searches: https://github.com/PMassicotte/gtrendsR/issues/268
 
-us <- gtrends(c("covid vaccine DNA"), geo = "US", 
-               time = "2021-05-1 2021-06-29", low_search_volume = T)
-plot(us) 
-str(us)
-us_time <- us$interest_over_time %>%
+safe_june <- gtrends(c("covid vaccine safe"), geo = "US", 
+               time = "2021-06-1 2021-06-29", low_search_volume = T)
+plot(safe_june) 
+str(safe_june)
+safe_time1 <- safe_june$interest_over_time %>%
       as_tibble()
-glimpse(us_time)
+glimpse(safe_time1)
 ```
 
 ```{r}
 #hits for search keyword by state
-us_state <- us$interest_by_region %>%
+safe1_state <- safe_june$interest_by_region %>%
       as_tibble()
-glimpse(us_state)
+glimpse(safe1_state)
 
-#hits for search keyword by metro area
-us_metro <- us$interest_by_dma %>%
-      as_tibble()
-
-#hits for search keyword by city
-us_city <- us$interest_by_city %>%
-      as_tibble()
 ```
 
 
@@ -246,4 +239,12 @@ vax.Sept21 <- vax.Sept21 %>%
 
 vax.Sept21 %>%
   select(location, population, administered, admin_per_100k)
+```
+```{r}
+
+## Percent of population by state that have been fully vaccinated as of September 21
+
+vax.Sept21 %>%
+  select(location, series_complete_pop_pct) %>%
+  arrange(series_complete_pop_pct)
 ```
