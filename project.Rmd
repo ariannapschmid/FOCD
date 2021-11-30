@@ -54,11 +54,19 @@ myths_clean
 
 safe_june <- gtrends(c("covid vaccine safe"), geo = "US", 
                time = "2021-06-1 2021-06-29", low_search_volume = T)
-plot(safe_june) 
-str(safe_june)
-safe_time1 <- safe_june$interest_over_time %>%
-      as_tibble()
-glimpse(safe_time1)
+  plot(safe_june) 
+  str(safe_june)
+  safe_time1 <- safe_june$interest_over_time %>%
+        as_tibble()
+  glimpse(safe_time1)
+
+safe_sept <- gtrends(c("covid vaccine safe"), geo = "US", 
+               time = "2021-09-1 2021-09-29", low_search_volume = T)
+  plot(safe_sept) 
+  str(safe_sept)
+  safe_time2 <- safe_sept$interest_over_time %>%
+        as_tibble()
+  glimpse(safe_time2)   
 ```
 
 ```{r}
@@ -66,6 +74,10 @@ glimpse(safe_time1)
 safe1_state <- safe_june$interest_by_region %>%
       as_tibble()
 glimpse(safe1_state)
+
+safe2_state <- safe_sept$interest_by_region %>%
+      as_tibble()
+glimpse(safe2_state)
 
 ```
 
@@ -247,4 +259,36 @@ vax.Sept21 %>%
 vax.Sept21 %>%
   select(location, series_complete_pop_pct) %>%
   arrange(series_complete_pop_pct)
+```
+
+```{r}
+# Arianna's code: joining the resulting state-level dataset (named safe1_state) with the vax.June30 data frame and doing the correlation analysis to see if there's any general association between people searching for vaccine safety information and vaccine rates by state
+safe1_state
+
+safe1.vax.June30 <- safe1_state %>% full_join(vax.June30, by = "location") 
+
+safe1.vax.June30 <- safe1.vax.June30 %>% select(location, date, hits, admin_per_100k, series_complete_pop_pct) %>%
+                     arrange(location) %>%
+                     drop_na()
+
+ # using series_complete_pop_pct as measure for state vaccination rate                
+ggplot(safe1.vax.June30, aes(hits, series_complete_pop_pct)) + geom_point() + 
+      labs(y = "% of pop that completed vaccine series", x = "# of search hits") +
+      ggtitle("Searches for vaccine safety info \nversus vaccine rates by State ")
+
+plot(safe1.vax.June30$hits,safe1.vax.June30$series_complete_pop_pct,las = 1)
+
+cor(x = safe1.vax.June30$hits,y = safe1.vax.June30$series_complete_pop_pct, use = "everything")
+#  0.3572245
+cor.test(x = safe1.vax.June30$hits,y = safe1.vax.June30$series_complete_pop_pct)
+# p-value = 0.01729. This is less than alpha = .05 so we can reject the null and conclude that the true correlation is not equal to 0; statistically signoficant from 0
+
+# using admin_per_100k as measure for state vaccination rate  
+plot(safe1.vax.June30$hits,safe1.vax.June30$admin_per_100k,las = 1)
+cor(x = safe1.vax.June30$hits,y = safe1.vax.June30$admin_per_100k, use = "everything")
+# 0.2869293
+cor.test(x = safe1.vax.June30$hits,y = safe1.vax.June30$admin_per_100k)
+# p-value = 0.05897, so fail to reject the null hypothesis being the true correlation = 0; there is inconclusive evidence about the significance of the association between the variables.
+
+
 ```
