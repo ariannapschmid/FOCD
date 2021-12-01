@@ -49,39 +49,9 @@ myths_clean
 ```
 
 ```{r}
-# will the keywords below capture searches like "will the covid-19 vaccine damage my dna" and other variants of that question? or do I remove the addition sign?
+
+#Gtrends keyword searches
 #Info about keyword searches: https://github.com/PMassicotte/gtrendsR/issues/268
-
-safe_june <- gtrends(c("covid vaccine safe"), geo = "US", 
-               time = "2021-06-1 2021-06-29", low_search_volume = T)
-  plot(safe_june) 
-  str(safe_june)
-  safe_time1 <- safe_june$interest_over_time %>%
-        as_tibble()
-  glimpse(safe_time1)
-
-safe_sept <- gtrends(c("covid vaccine safe"), geo = "US", 
-               time = "2021-09-1 2021-09-29", low_search_volume = T)
-  plot(safe_sept) 
-  str(safe_sept)
-  safe_time2 <- safe_sept$interest_over_time %>%
-        as_tibble()
-  glimpse(safe_time2)   
-```
-
-```{r}
-#hits for search keyword by state
-safe1_state <- safe_june$interest_by_region %>%
-      as_tibble()
-glimpse(safe1_state)
-
-safe2_state <- safe_sept$interest_by_region %>%
-      as_tibble()
-glimpse(safe2_state)
-
-```
-
-```{r}
 
 k <- c("covid vaccine safe", 
 "covid vaccine ingredients", 
@@ -102,7 +72,6 @@ for (i in 1:length(k)){
              )
 }
 
-
 hits_results <- Keyword1$interest_by_region %>%
   left_join(Keyword2$interest_by_region, by = "location") %>%
   left_join(Keyword3$interest_by_region, by = "location") %>%
@@ -114,43 +83,44 @@ hits_results <- Keyword1$interest_by_region %>%
   left_join(Keyword9$interest_by_region, by = "location") %>%
   left_join(Keyword10$interest_by_region, by = "location") %>%
   as_tibble() %>%
-  select(-c(4,5,8,9,12,13,16,17,20,21,24,25,28,29,32,33,36,37,40,41))
+  select(c(1,2,6,10,14,18,22,26,30,34,38))
+
 
 hits_results %<>% rename( hits.1 = hits.x, 
                           hits.2 = hits.y,
-                          hits.3 =  hits.x.x,
-                          hits.4 =  hits.y.y,
-                          hits.5 =  hits.x.x.x,
-                          hits.6 =  hits.y.y.y,
-                          hits.7 =  hits.x.x.x.x,
-                          hits.8 =  hits.y.y.y.y,
+                          hits.3 = hits.x.x,
+                          hits.4 = hits.y.y,
+                          hits.5 = hits.x.x.x,
+                          hits.6 = hits.y.y.y,
+                          hits.7 = hits.x.x.x.x,
+                          hits.8 = hits.y.y.y.y,
                           hits.9 = hits.x.x.x.x.x,
-                          hits.10 = hits.y.y.y.y.y,
-                        
-                          keyword.1 = keyword.x, 
-                          keyword.2 = keyword.y,
-                          keyword.3 =  keyword.x.x,
-                          keyword.4 =  keyword.y.y,
-                          keyword.5 =  keyword.x.x.x,
-                          keyword.6 =  keyword.y.y.y,
-                          keyword.7 =  keyword.x.x.x.x,
-                          keyword.8 =  keyword.y.y.y.y,
-                          keyword.9 = keyword.x.x.x.x.x,
-                          keyword.10 = keyword.y.y.y.y.y
-                )
+                          hits.10 = hits.y.y.y.y.y)
 
-hits_results %<>% select(-c( keyword.1, 
-                            keyword.2, 
-                            keyword.3,
-                            keyword.4, 
-                            keyword.5, 
-                            keyword.6, 
-                            keyword.7, 
-                            keyword.8, 
-                            keyword.9,  
-                            keyword.10
-                          )
-                        )
+
+#create a data frame that lists the count of states that have a gtrends ranking for the specified search term
+
+j <- c("hits.1", 
+"hits.2", 
+"hits.3", 
+"hits.4", 
+"hits.5", 
+"hits.6", 
+"hits.7", 
+"hits.8", 
+"hits.9", 
+"hits.10")
+
+search_terms <- apply(!is.na(hits_results), 2, sum) %>%
+  as_tibble() %>%
+  slice_tail(n=10) %>%
+  cbind(j,k) %>%
+  relocate(value,.after = k)
+  
+search_terms %<>% rename(var_name = j, search = k, num_states = value)
+
+print(search_terms)
+
 ```
 
 
@@ -275,6 +245,7 @@ cdc.df.50 %>%
 
 ```{r}
 ##Create two datasets for our vaccination dates of interest
+##Might not use the June dataset in the end
 
 vax.June30 <- cdc.df.50 %>%
   filter(date == "2021-06-30")
@@ -334,33 +305,51 @@ vax.Sept21 %>%
 ```
 
 ```{r}
-# Arianna's code: joining the resulting state-level dataset (named safe1_state) with the vax.June30 data frame and doing the correlation analysis to see if there's any general association between people searching for vaccine safety information and vaccine rates by state
-safe1_state
+# Arianna's code: joining the resulting state-level dataset (named hits_results) with the vax.Sept21 data frame and doing the correlation analysis to see if there's any general association between people searching for various keywords and vaccine rates by state
 
-safe1.vax.June30 <- safe1_state %>% full_join(vax.June30, by = "location") 
+Sept21.analysis <- vax.Sept21 %>% 
+      select(location, date, admin_per_100k, series_complete_pop_pct) %>% 
+      full_join(hits_results, by = "location") %>%
+      arrange(location)
 
-safe1.vax.June30 <- safe1.vax.June30 %>% select(location, date, hits, admin_per_100k, series_complete_pop_pct) %>%
-                     arrange(location) %>%
-                     drop_na()
 
  # using series_complete_pop_pct as measure for state vaccination rate                
-ggplot(safe1.vax.June30, aes(hits, series_complete_pop_pct)) + geom_point() + 
-      labs(y = "% of pop that completed vaccine series", x = "# of search hits") +
-      ggtitle("Searches for vaccine safety info \nversus vaccine rates by State ")
+ggplot(Sept21.analysis, aes(hits.1, series_complete_pop_pct)) + geom_point() + 
+      labs(y = "% of pop that completed vaccine series", x = "Search Volume") +
+      ggtitle("Searches for vaccine safety info versus vaccine rates by State ")
 
-plot(safe1.vax.June30$hits,safe1.vax.June30$series_complete_pop_pct,las = 1)
+plot(Sept21.analysis$hits.1,Sept21.analysis$series_complete_pop_pct,las = 1)
 
-cor(x = safe1.vax.June30$hits,y = safe1.vax.June30$series_complete_pop_pct, use = "everything")
-#  0.3572245
-cor.test(x = safe1.vax.June30$hits,y = safe1.vax.June30$series_complete_pop_pct)
-# p-value = 0.01729. This is less than alpha = .05 so we can reject the null and conclude that the true correlation is not equal to 0; statistically signoficant from 0
+cor(x = Sept21.analysis$hits.1, y = Sept21.analysis$series_complete_pop_pct, use = "complete.obs")
+
+cor.test(x = Sept21.analysis$hits.1,y = Sept21.analysis$series_complete_pop_pct)
 
 # using admin_per_100k as measure for state vaccination rate  
-plot(safe1.vax.June30$hits,safe1.vax.June30$admin_per_100k,las = 1)
-cor(x = safe1.vax.June30$hits,y = safe1.vax.June30$admin_per_100k, use = "everything")
-# 0.2869293
-cor.test(x = safe1.vax.June30$hits,y = safe1.vax.June30$admin_per_100k)
-# p-value = 0.05897, so fail to reject the null hypothesis being the true correlation = 0; there is inconclusive evidence about the significance of the association between the variables.
+plot(Sept21.analysis$hits,Sept21.analysis$admin_per_100k,las = 1)
 
+cor(x = Sept21.analysis$hits.1,y = Sept21.analysis$admin_per_100k, use = "complete.obs")
+
+cor.test(x = Sept21.analysis$hits.1,y = Sept21.analysis$admin_per_100k)
+```
+
+```{r}
+#Loop for correlations for each search term
+
+correlations <- data.frame(estimate=numeric(14), p.value=numeric(14))
+
+for(i in 5:ncol(Sept21.analysis)){
+  test <- cor.test(Sept21.analysis[, i], Sept21.analysis$series_complete_pop_pct)
+  correlations$estimate[i] = test$estimate
+  correlations$p.value[i] = test$p.value
+}
+
+correlations %<>%
+  slice_tail(n=10) %>%
+  cbind(j,k) %>%
+  relocate(estimate, p.value,.after = k)
+  
+correlations %<>% rename(var_name = j, search = k)
+
+print(correlations)
 
 ```
