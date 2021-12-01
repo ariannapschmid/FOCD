@@ -64,30 +64,28 @@ k <- c("covid vaccine safe",
 "covid vaccine infertility", 
 "covid vaccine magnet")
 
-########## January-September run ################
-
-for (i in 1:length(k)){
-      new_frame <- paste("Keyword",i,sep = "")
-      assign(new_frame, gtrends(k[i], geo = "US",
-               time = "2021-01-1 2021-09-20", low_search_volume = T)
-             )
-}
-
- hits_results <- Keyword1$interest_by_region %>%
-  left_join(Keyword2$interest_by_region, by = "location") %>%
-  left_join(Keyword3$interest_by_region, by = "location") %>%
-  left_join(Keyword4$interest_by_region, by = "location") %>%
-  left_join(Keyword5$interest_by_region, by = "location") %>%
-  left_join(Keyword6$interest_by_region, by = "location") %>%
-  left_join(Keyword7$interest_by_region, by = "location") %>%
-  left_join(Keyword8$interest_by_region, by = "location") %>%
-  left_join(Keyword9$interest_by_region, by = "location") %>%
-  left_join(Keyword10$interest_by_region, by = "location") %>%
-  as_tibble() %>%
-  select(c(1,2,6,10,14,18,22,26,30,34,38))
-
-
-hits_results %<>% rename( hits.1 = hits.x, 
+get.hits.results <-  function(date){
+    for (i in 1:length(k)){
+          new_frame <- paste("Keyword",i,sep = "")
+          assign(new_frame, gtrends(k[i], geo = "US",
+                   time = date, low_search_volume = T)
+                 )
+    }
+    
+    hits_results <- Keyword1$interest_by_region %>%              
+      left_join(Keyword2$interest_by_region, by = "location") %>%
+      left_join(Keyword3$interest_by_region, by = "location") %>%
+      left_join(Keyword4$interest_by_region, by = "location") %>%
+      left_join(Keyword5$interest_by_region, by = "location") %>%
+      left_join(Keyword6$interest_by_region, by = "location") %>%
+      left_join(Keyword7$interest_by_region, by = "location") %>%
+      left_join(Keyword8$interest_by_region, by = "location") %>%
+      left_join(Keyword9$interest_by_region, by = "location") %>%
+      left_join(Keyword10$interest_by_region, by = "location") %>%
+      as_tibble() %>%
+      select(c(1,2,6,10,14,18,22,26,30,34,38))
+    
+    hits_results %<>% rename( hits.1 = hits.x, 
                           hits.2 = hits.y,
                           hits.3 = hits.x.x,
                           hits.4 = hits.y.y,
@@ -97,11 +95,17 @@ hits_results %<>% rename( hits.1 = hits.x,
                           hits.8 = hits.y.y.y.y,
                           hits.9 = hits.x.x.x.x.x,
                           hits.10 = hits.y.y.y.y.y)
+    print(hits_results)  
+    
+}
 
+hits.results.jan <- get.hits.results("2021-01-1 2021-09-20")
+hits.results.june <- get.hits.results("2021-04-1 2021-06-20")
+hits.results.sept <- get.hits.results("2021-05-1 2021-09-20")
 
 #create a data frame that lists the count of states that have a gtrends ranking for the specified search term
-
-j <- c("hits.1", 
+get.search.terms <- function(hits_results){
+ j <- c("hits.1", 
 "hits.2", 
 "hits.3", 
 "hits.4", 
@@ -121,6 +125,12 @@ search_terms <- apply(!is.na(hits_results), 2, sum) %>%
 search_terms %<>% rename(var_name = j, search = k, num_states = value)
 
 print(search_terms)
+  
+}
+
+search.terms.jan <- get.search.terms(hits.results.jan)
+search.terms.june <- get.search.terms(hits.results.june) 
+search.terms.sept <- get.search.terms(hits.results.sept)
 
 ```
 
