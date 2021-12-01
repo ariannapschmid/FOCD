@@ -64,6 +64,7 @@ k <- c("covid vaccine safe",
 "covid vaccine infertility", 
 "covid vaccine magnet")
 
+########## January-September run ################
 
 for (i in 1:length(k)){
       new_frame <- paste("Keyword",i,sep = "")
@@ -72,7 +73,7 @@ for (i in 1:length(k)){
              )
 }
 
-hits_results <- Keyword1$interest_by_region %>%
+ hits_results <- Keyword1$interest_by_region %>%
   left_join(Keyword2$interest_by_region, by = "location") %>%
   left_join(Keyword3$interest_by_region, by = "location") %>%
   left_join(Keyword4$interest_by_region, by = "location") %>%
