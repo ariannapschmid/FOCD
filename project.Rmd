@@ -19,6 +19,9 @@ library(RSocrata)
 library(tidyverse)
 library(magrittr)
 library(gtrendsR)
+
+load("search_data.RData")
+
 ```
 
 ``` {r}
@@ -139,6 +142,9 @@ print(search_terms)
 search.terms.jan <- get.search.terms(hits.results.jan)
 search.terms.june <- get.search.terms(hits.results.june) 
 search.terms.sept <- get.search.terms(hits.results.sept)
+
+
+save(search.terms.jan, search.terms.june, search.terms.sept, file = "search_data.RData")
 
 ```
 
