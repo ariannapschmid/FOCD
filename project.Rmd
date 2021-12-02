@@ -279,7 +279,7 @@ vax.Sept21 <- cdc.df.50 %>%
 
 ```{r}
 
-# scrape state population info from Wikipedia. Turn into a data frame called state_pop
+## Scrape state population info from Wikipedia. Turn into a data frame called state_pop
 
 paths_allowed("https://simple.wikipedia.org/wiki/List_of_U.S._states_by_population")
 url <- read_html("https://simple.wikipedia.org/wiki/List_of_U.S._states_by_population")  
@@ -302,7 +302,7 @@ state_pop <- state_pop %>% arrange(state)
 
 ```{r}
 
-##Joining state population data with the June 30 and September 21 data frames
+## Join state population data from above with the June 21 and September 21 data frames
 
 state_pop <- rename(state_pop, location = state)
 
@@ -324,8 +324,53 @@ vax.Sept21 %>%
   arrange(series_complete_pop_pct)
 ```
 
+
 ```{r}
-#Replace NAs in gtrends hit rates data frames with zero (assuming there is no hit rate because there aren't enough searches, so functionally it's zero)
+
+## Get state percentages of Trump voters info. Source is https://cookpolitical.com/2020-national-popular-vote-tracker.
+
+getwd() 
+# /Users/ariannaschmid/Desktop/SURVMETH 727/FOCD
+setwd("/Users/ariannaschmid/Desktop/SURVMETH 727")
+
+percent.rep <- read_excel("/Users/ariannaschmid/Desktop/SURVMETH 727/vote.xlsx", sheet = "Sheet1")
+percent.rep %<>% select (state,rep_percent) %>% rename (pct.vote.rep = rep_percent, location = state) %>% arrange(location)
+
+ 
+## Get median household income info from 2018. Source is https://www2.census.gov/programs-surveys/cps/tables/time-series/historical-income-households/h08.xls
+
+med.income <- read_excel("/Users/ariannaschmid/Desktop/SURVMETH 727/med.income.xlsx", range = cell_cols(1:2), col_names = c("location","med.income") )
+
+## Get percent of state population by age group info. Source is https://datacenter.kidscount.org/data/tables/6538-adult-population-by-age-group#detailed/2/2-53/false/574,1729,37,871,870,573,869,36,868,867/117,2801,2802,2803/13515,13516
+
+percent.age <- read_excel("/Users/ariannaschmid/Desktop/SURVMETH 727/percent.age.xlsx", 
+                          col_names = c("location","age.group","pct.state.pop"))
+percent.age %<>% spread(key = age.group, value = pct.state.pop) %>%
+                 rename("pct.18.to.24" = "18 to 24", "pct.25.to.64" = "25 to 64","pct.65.over" = "Ages 65 and over")
+
+percent.age$pct.18.to.24 <- as.numeric(percent.age$pct.18.to.24)
+percent.age$pct.25.to.64 <- as.numeric(percent.age$pct.25.to.64)
+percent.age$pct.65.over <- as.numeric(percent.age$pct.65.over)
+          
+
+## Join 3 sets from above together. These are some covariates for the regression model
+cov <- percent.rep %>% full_join(med.income, by = "location") %>% full_join(percent.age, by = "location")
+
+## Join covariates from above with the June 21 and September 21 data frames; same as we did with state population info from Wikipedia
+
+vax.June21 <- vax.June21 %>%
+  left_join(cov, by = "location")
+  
+vax.Sept21 <- vax.Sept21 %>%
+  left_join(cov, by = "location")
+
+
+```
+
+
+
+```{r}
+## Replace NAs in gtrends hit rates data frames with zero (assuming there is no hit rate because there aren't enough searches, so functionally it's zero)
 
 hits.results.jan[is.na(hits.results.jan)] = 0
 hits.results.june[is.na(hits.results.june)] = 0
