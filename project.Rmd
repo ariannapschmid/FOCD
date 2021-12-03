@@ -399,7 +399,6 @@ join.gtrends.vaccine <- function (hits.results.month,vax.month){
 
 }
 
-# note that this  sept21.analysis is not the same as the original one from a few days ago. The original sept21.analysis pulls from hits.results.jan. To make it less confusing, I renamed it to Jan01.analysis. This way it is consistent with the range of dates that it pulls from.
 Jan01.analysis <- join.gtrends.vaccine(hits.results.jan,vax.Sept21)   
 Sept21.analysis <- join.gtrends.vaccine(hits.results.sept,vax.Sept21)
 June21.analysis <- join.gtrends.vaccine(hits.results.june,vax.June21)
