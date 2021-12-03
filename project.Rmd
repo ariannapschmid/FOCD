@@ -19,6 +19,7 @@ library(RSocrata)
 library(tidyverse)
 library(magrittr)
 library(gtrendsR)
+library(readxl)
 
 load("shared_work_space.RData")
 
@@ -351,10 +352,15 @@ percent.age %<>% spread(key = age.group, value = pct.state.pop) %>%
 percent.age$pct.18.to.24 <- as.numeric(percent.age$pct.18.to.24)
 percent.age$pct.25.to.64 <- as.numeric(percent.age$pct.25.to.64)
 percent.age$pct.65.over <- as.numeric(percent.age$pct.65.over)
-          
+
+#Get percent of state population by race/ethnic group. Source is 2020 Current Population Survey via the KFF:
+#https://www.kff.org/other/state-indicator/population-distribution-by-race-ethnicity-cps/?currentTimeframe=0&sortModel=%7B%22colId%22:%22Location%22,%22sort%22:%22asc%22%7D
+
+percent.race <- read_excel("C:/Users/sfrank/Box/JPSM/SURV727-Fundamentals of Computing and Data Display/FOCD RStudio/State Race Data.xlsx", 
+                          col_names = TRUE, col_types = NULL)
 
 ## Join 3 sets from above together. These are some covariates for the regression model
-cov <- percent.rep %>% full_join(med.income, by = "location") %>% full_join(percent.age, by = "location")
+cov <- percent.rep %>% full_join(med.income, by = "location") %>% full_join(percent.age, by = "location") %>% full_join(percent.race, by = "location")
 
 ## Join covariates from above with the June 21 and September 21 data frames; same as we did with state population info from Wikipedia
 
