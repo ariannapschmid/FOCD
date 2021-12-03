@@ -253,7 +253,7 @@ table(cdc.df.50$location)
 
 
 ```{r}
-#visualize doses administered over time for entire US
+# visualize doses administered over time for entire US
 
 cdc.df.50 %>%
   group_by(date) %>%
@@ -265,8 +265,8 @@ cdc.df.50 %>%
 
 
 ```{r}
-##Create two datasets for our vaccination dates of interest
-##Might not use the June dataset in the end
+## Create two datasets for our vaccination dates of interest
+## Might not use the June dataset in the end
 
 vax.June21 <- cdc.df.50 %>%
   filter(date == "2021-06-21")
@@ -371,8 +371,18 @@ vax.Sept21 <- vax.Sept21 %>%
   left_join(cov, by = "location")
 
 
-```
+## Arianna's code to fix tables. Don't rerun.
+vax.June21 %<>% select(-c(pct.vote.rep.x,med.income.x,pct.18.to.24.x,pct.25.to.64.x,pct.65.over.x,
+                         )) 
+vax.June21 %<>% rename(pct.vote.rep = pct.vote.rep.y, med.income = med.income.y, pct.18.to.24 = pct.18.to.24.y,
+                       pct.25.to.64 = pct.25.to.64.y, pct.65.over = pct.65.over.y)
 
+vax.Sept21 %<>% select(-c(pct.vote.rep.x,med.income.x,pct.18.to.24.x,pct.25.to.64.x,pct.65.over.x,
+                         )) 
+vax.Sept21 %<>% rename(pct.vote.rep = pct.vote.rep.y, med.income = med.income.y, pct.18.to.24 = pct.18.to.24.y,
+                       pct.25.to.64 = pct.25.to.64.y, pct.65.over = pct.65.over.y)
+
+```
 
 
 ```{r}
@@ -381,7 +391,6 @@ vax.Sept21 <- vax.Sept21 %>%
 hits.results.jan[is.na(hits.results.jan)] = 0
 hits.results.june[is.na(hits.results.june)] = 0
 hits.results.sept[is.na(hits.results.sept)] = 0
-
 ```
 
 
@@ -391,7 +400,9 @@ hits.results.sept[is.na(hits.results.sept)] = 0
 join.gtrends.vaccine <- function (hits.results.month,vax.month){
   
   month.analysis <- vax.month %>% 
-        select(location,date, admin_per_100k, series_complete_pop_pct) %>% # should we select others? The covariates?
+      select(location,date, admin_per_100k, series_complete_pop_pct,
+             pct.vote.rep, med.income, pct.18.to.24, pct.25.to.64, pct.65.over, 
+             pct.white, pct.black, pct.hispanic, pct.asian, pct.other.multiple) %>% 
         full_join(hits.results.month, by = "location") %>%
         arrange(location)
   
@@ -425,6 +436,7 @@ plot(Sept21.analysis$hits.1,Sept21.analysis$admin_per_100k,las = 1)
 cor(x = Sept21.analysis$hits.1,y = Sept21.analysis$admin_per_100k, use = "complete.obs")
 
 cor.test(x = Sept21.analysis$hits.1,y = Sept21.analysis$admin_per_100k)
+
 ```
 
 ```{r}
@@ -439,9 +451,9 @@ get.correlations <- function(month.analysis){
       "hits.9", "hits.10",
       "hits.11","hits.12")
     
-      correlations <- data.frame(estimate=numeric(16), p.value=numeric(16))
+      correlations <- data.frame(estimate=numeric(26), p.value=numeric(26))
     
-      for(i in 5:ncol(month.analysis)){
+      for(i in 15:ncol(month.analysis)){
         test <- cor.test(month.analysis[, i], month.analysis$series_complete_pop_pct)
         correlations$estimate[i] = test$estimate
         correlations$p.value[i] = test$p.value
@@ -464,6 +476,16 @@ June21.correlations <- get.correlations(June21.analysis)
 
 ```
 
+```{r}
+# Plotting and regression analysis
+
+Jan01.analysis %>% select(series_complete_pop_pct, pct.vote.rep,med.income,
+                          pct.18.to.24,pct.25.to.64,pct.65.over,
+                          pct.white,pct.black,pct.hispanic,pct.asian,pct.other.multiple,
+                          hits.1,hits.2,hits.3) %>% plot()
+
+
+```
 
 ```{r}
 save.image(file = "shared_work_space.RData")
