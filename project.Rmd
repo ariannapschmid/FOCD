@@ -415,30 +415,6 @@ Sept21.analysis <- join.gtrends.vaccine(hits.results.sept,vax.Sept21)
 June21.analysis <- join.gtrends.vaccine(hits.results.june,vax.June21)
 ```
 
-
-```{r}
-##Correlation analysis
-
-# using series_complete_pop_pct as measure for state vaccination rate                
-ggplot(Sept21.analysis, aes(hits.1, series_complete_pop_pct)) + geom_point() + 
-      labs(y = "% of pop that completed vaccine series", x = "Search Volume") +
-      ggtitle("Searches for vaccine safety info versus vaccine rates by State ")
-
-plot(Sept21.analysis$hits.1,Sept21.analysis$series_complete_pop_pct,las = 1)
-
-cor(x = Sept21.analysis$hits.1, y = Sept21.analysis$series_complete_pop_pct, use = "complete.obs")
-
-cor.test(x = Sept21.analysis$hits.1,y = Sept21.analysis$series_complete_pop_pct)
-
-# using admin_per_100k as measure for state vaccination rate  
-plot(Sept21.analysis$hits.1,Sept21.analysis$admin_per_100k,las = 1)
-
-cor(x = Sept21.analysis$hits.1,y = Sept21.analysis$admin_per_100k, use = "complete.obs")
-
-cor.test(x = Sept21.analysis$hits.1,y = Sept21.analysis$admin_per_100k)
-
-```
-
 ```{r}
 
 ## This function pulls the correlations for all 3 data sets 
@@ -474,6 +450,18 @@ Jan01.correlations <- get.correlations(Jan01.analysis)
 Sept21.correlations <- get.correlations(Sept21.analysis)
 June21.correlations <- get.correlations(June21.analysis)
 
+```
+
+```{r}
+##Plotting of correlations
+
+# using series_complete_pop_pct as measure for state vaccination rate                
+ggplot(Jan01.analysis) + geom_point(aes(hits.1, series_complete_pop_pct), color = '#24d0bc', size = 4) + 
+      labs(y = "State % Pop. Completed Vax Series", x = "Search Volume for 'COVID Vaccine'") +
+      ggtitle("Searches for 'COVID Vaccine' are Strongly Correlated with State Vax Rates") + 
+      theme_classic()
+
+ggsave("covid.correlation.png")
 ```
 
 ```{r}
