@@ -477,14 +477,64 @@ June21.correlations <- get.correlations(June21.analysis)
 ```
 
 ```{r}
+
 # Plotting and regression analysis
 
 Jan01.analysis %>% select(series_complete_pop_pct, pct.vote.rep,med.income,
-                          pct.18.to.24,pct.25.to.64,pct.65.over,
-                          pct.white,pct.black,pct.hispanic,pct.asian,pct.other.multiple,
-                          hits.1,hits.2,hits.3) %>% plot()
+                          pct.18.to.24,pct.25.to.64,pct.65.over) %>% 
+                          plot()
+
+##percent republican and median income seem to have a linear relationship with series_complete_pop_pct; age does not seem to have any relationship with vax rates
+
+Jan01.analysis %>% select(series_complete_pop_pct, pct.white,pct.black,pct.hispanic,pct.asian,pct.other.multiple) %>% 
+                          plot()
+
+##None of the race variables seem to be related to vax rates
 
 
+Jan01.analysis %>% select(series_complete_pop_pct, hits.1,hits.2,hits.3,hits.4) %>% 
+                          plot()
+
+#Hits1 is related; other plots are widely scattered
+
+Jan01.analysis %>% select(series_complete_pop_pct, hits.5,hits.6,hits.7,hits.8) %>% 
+                          plot()
+
+#Hits5 has some relationship; others not so much
+
+Jan01.analysis %>% select(series_complete_pop_pct, hits.9,hits.10,hits.11,hits.12) %>% 
+                          plot()
+
+#No strong relationships here
+
+
+##histogram of outcome variable
+
+hist(Jan01.analysis$series_complete_pop_pct)
+hist(Jan01.analysis$admin_per_100k)
+
+
+##Linear model
+
+model1 <- lm(series_complete_pop_pct ~ pct.vote.rep + pct.white + pct.black + hits.1 + hits.2 + hits.3 + hits.4 + hits.5 + hits.6 + hits.7 + hits.8 + hits.9 + hits.10 + hits.11 + hits.12 , data = Jan01.analysis)
+
+summary(model1)
+
+#Check that residuals are normally distributed
+
+hist(residuals(model1))
+
+#Check for homoskedasticity in residual variances (looks ok)
+
+plot(fitted(model1), residuals(model1))
+abline(h = 0, lty = 2)
+
+#Linear model with interaction
+#When adding interaction between hits.1 and % who voted republican, the main effects and the interaction are all not significant. Need to think about what that means...
+
+model2 <- lm(series_complete_pop_pct ~ pct.vote.rep + pct.black + hits.1  + hits.1*pct.vote.rep, data = Jan01.analysis)
+
+summary(model2)
 ```
 
 ```{r}
