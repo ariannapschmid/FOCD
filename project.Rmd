@@ -455,13 +455,27 @@ June21.correlations <- get.correlations(June21.analysis)
 ```{r}
 ##Plotting of correlations
 
+#Jan-Sept Searches
 # using series_complete_pop_pct as measure for state vaccination rate                
 ggplot(Jan01.analysis) + geom_point(aes(hits.1, series_complete_pop_pct), color = '#24d0bc', size = 4) + 
-      labs(y = "State % Pop. Completed Vax Series", x = "Search Volume for 'COVID Vaccine'") +
+      labs(y = "State % Pop. Completed Vax Series", x = "Jan-Sept Search Volume for 'COVID Vaccine'") +
       ggtitle("Searches for 'COVID Vaccine' are Strongly Correlated with State Vax Rates") + 
       theme_classic()
 
-ggsave("covid.correlation.png")
+ggsave("covid.correlation.Jan.png")
+```
+```{r}
+
+##Plotting of correlations continued
+
+#July-September Searches
+# using series_complete_pop_pct as measure for state vaccination rate                
+ggplot(Sept21.analysis) + geom_point(aes(hits.1, series_complete_pop_pct), color = '#24d0bc', size = 4) + 
+      labs(y = "State % Pop. Completed Vax Series", x = "July-Sept Search Volume for 'COVID Vaccine'") +
+      ggtitle("July-Sept Searches for 'COVID Vaccine' Relationship with State Vax Rates") + 
+      theme_classic()
+
+ggsave("covid.correlation.Sept.png")
 ```
 
 ```{r}
