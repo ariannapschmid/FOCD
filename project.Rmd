@@ -334,17 +334,17 @@ getwd()
 # /Users/ariannaschmid/Desktop/SURVMETH 727/FOCD
 setwd("/Users/ariannaschmid/Desktop/SURVMETH 727")
 
-percent.rep <- read_excel("/Users/ariannaschmid/Desktop/SURVMETH 727/vote.xlsx", sheet = "Sheet1")
+percent.rep <- read_excel("vote.xlsx", sheet = "Sheet1")
 percent.rep %<>% select (state,rep_percent) %>% rename (pct.vote.rep = rep_percent, location = state) %>% arrange(location)
 
  
 ## Get median household income info from 2018. Source is https://www2.census.gov/programs-surveys/cps/tables/time-series/historical-income-households/h08.xls
 
-med.income <- read_excel("/Users/ariannaschmid/Desktop/SURVMETH 727/med.income.xlsx", range = cell_cols(1:2), col_names = c("location","med.income") )
+med.income <- read_excel("med.income.xlsx", range = cell_cols(1:2), col_names = c("location","med.income") )
 
 ## Get percent of state population by age group info. Source is https://datacenter.kidscount.org/data/tables/6538-adult-population-by-age-group#detailed/2/2-53/false/574,1729,37,871,870,573,869,36,868,867/117,2801,2802,2803/13515,13516
 
-percent.age <- read_excel("/Users/ariannaschmid/Desktop/SURVMETH 727/percent.age.xlsx", 
+percent.age <- read_excel("percent.age.xlsx", 
                           col_names = c("location","age.group","pct.state.pop"))
 percent.age %<>% spread(key = age.group, value = pct.state.pop) %>%
                  rename("pct.18.to.24" = "18 to 24", "pct.25.to.64" = "25 to 64","pct.65.over" = "Ages 65 and over")
