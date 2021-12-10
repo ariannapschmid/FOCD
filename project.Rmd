@@ -1,16 +1,15 @@
 ---
-title: "project"
-author: "Arianna Schmid, Stacey Frank"
-date: "10/18/2021"
-output: html_document
+title: "COVID-19 Vaccination Rates and Google Search Data"
+author: "Arianna Schmid and Stacey Frank"
+date: "12/16/2021"
+output: pdf_document
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-## SETUP
-``` {r echo = FALSE}
+``` {r include = FALSE}
 library(xml2)
 library(rvest)
 library(jsonlite)
@@ -25,51 +24,39 @@ load("shared_work_space.RData")
 
 ```
 
-``` {r}
-# scraping educated questions from cdc website
-paths_allowed("https://www.cdc.gov/coronavirus/2019-ncov/vaccines/faq.html")
-url <- read_html("https://www.cdc.gov/coronavirus/2019-ncov/vaccines/faq.html")  
-nds <- html_nodes(url, xpath = '//*[contains(concat( " ", @class, " " ), concat( " ", "btn-link", " " ))]//span')
-common <- html_text(nds)
-common # scraped unnecessary contact info for cdc. Only need 1st 30 elements
-common <- common[1:30] # the result is a list of 30 educated/common vaccine questions
+# Introduction
 
-# scraping myths/uneducated questions from cdc website
-myths <- read_html("https://www.cdc.gov/coronavirus/2019-ncov/vaccines/facts.html") %>%
-  html_nodes(xpath = '//*[(@id = "accordion-2-card-4")]//span | //*[(@id = "accordion-2-card-3")]//span |    //*[(@id = "accordion-2-card-2")]//span | //*[(@id = "accordion-2-card-1")]//span | //*[contains(concat( " ", @class, " " ), concat( " ", "h4", " " ))]//strong') %>% 
-  html_text()
-  myths # the result is a list of 11 uneducated questions/myths
-  
-  
-# clean the lists:remove stopwords, turn into lowercase, remove blank space, and add + sign to set up for gtrends search afterwards
-library("tm")
-myths = tolower(myths)
-all_stops <- c(stopwords("en"), "can","will","near","get","united states","use", "like")
-myths_clean <- removeWords(myths,all_stops)
-myths_clean %<>% str_trim()
-myths_clean <- gsub("\\s+"," + ", myths_clean)
-myths_clean
-  
+Vaccines to control the coronavirus disease 2019 (COVID-19) became available to the public in the first half of 2021. Rejection and indecision towards being vaccinated is evident across the United States.The motivation for this study is to provide a better understanding of reasons for COVID-19 vaccine refusal in the United States. This can help public health messaging campaigns be more targeted and effective when promoting vaccination. 
+
+Google data is useful for exploring this topic because there is previous research that people feel freer to Google socially stigmatized topics than they would be to admit such opinions in a survey or other form of data collection. As a result, our primary research question is what is the relationship, if any, between state-level COVID-19 vaccine rates and the types of Google searches that are made about vaccines? In particular, are vaccine myths more commonly searched for in states that also have low vaccination rates? A secondary question we investigate is does the relationship between COVID vaccine rates and Google searches change between June and September 2021?
+
+# Data Collection
+
+## 1. Google Trends and Keywords
+The CDC provides lists of the most common questions about the COVID-19 vaccine. Similarly, the Mayo Clinic provides information on the most common myths surrounding the vaccine. Using these two data sources, a list of 12 keyword search terms was constructed. We call this list "k" to signify "keywords". It consists of the two general searches "covid vaccine" and "covid vaccine near me", five meainstream searches such as "covid vaccine side effects," and 5 myth-related searches such as "covid vaccine microchip."
+
+```{r eval = FALSE}
+
+# Gtrends keyword searches
+# Info about keyword searches: https://github.com/PMassicotte/gtrendsR/issues/268
+k <- c( "covid vaccine",
+        "covid vaccine near me",
+        "covid vaccine safe", 
+        "covid vaccine ingredients", 
+        "covid vaccine pregnant", 
+        "covid vaccine protect", 
+        "covid vaccine side effects", 
+        "covid vaccine microchip", 
+        "covid vaccine dna", 
+        "covid vaccine fetal", 
+        "covid vaccine infertility", 
+        "covid vaccine magnet")
+
 ```
 
-```{r}
+The gtrendsR package was used to work with Google Trends Queries. This allowed us to look at the trends, or number of hits, for each of the 12 keyword searches. In addition, we studied the hit results in each of the 50 states and the District of Columbia. Trends data was pulled for three time periods: 1/1/21-9/20/21, 4/1/21-6/20/21, and 7/1/21-9/20/21 since vaccine availability varied by state. Furthermore, each element in "k" was renamed based on its index (hits.1, hits.2, ...hits.12) for code efficiency. 
 
-#Gtrends keyword searches
-#Info about keyword searches: https://github.com/PMassicotte/gtrendsR/issues/268
-
-k <- c("covid vaccine",
-"covid vaccine near me",
-"covid vaccine safe", 
-"covid vaccine ingredients", 
-"covid vaccine pregnant", 
-"covid vaccine protect", 
-"covid vaccine side effects", 
-"covid vaccine microchip", 
-"covid vaccine dna", 
-"covid vaccine fetal", 
-"covid vaccine infertility", 
-"covid vaccine magnet")
-
+```{r eval = FALSE }
 get.hits.results <-  function(date){
     for (i in 1:length(k)){
           new_frame <- paste("Keyword",i,sep = "")
@@ -112,45 +99,49 @@ get.hits.results <-  function(date){
 hits.results.jan <- get.hits.results("2021-01-1 2021-09-20")
 hits.results.june <- get.hits.results("2021-04-1 2021-06-20")
 hits.results.sept <- get.hits.results("2021-07-1 2021-09-20")
-
-#create a data frame that lists the count of states that have a gtrends ranking for the specified search term
-get.search.terms <- function(hits_results){
- j <- c("hits.1", 
-"hits.2", 
-"hits.3", 
-"hits.4", 
-"hits.5", 
-"hits.6", 
-"hits.7", 
-"hits.8", 
-"hits.9", 
-"hits.10",
-"hits.11",
-"hits.12")
-
-search_terms <- apply(!is.na(hits_results), 2, sum) %>%
-  as_tibble() %>%
-  slice_tail(n=12) %>%
-  cbind(j,k) %>%
-  relocate(value,.after = k)
-  
-search_terms %<>% rename(var_name = j, search = k, num_states = value)
-
-print(search_terms)
-  
-}
-
-search.terms.jan <- get.search.terms(hits.results.jan)
-search.terms.june <- get.search.terms(hits.results.june) 
-search.terms.sept <- get.search.terms(hits.results.sept)
-
 ```
 
+```{r}
+print(hits.results.jan) 
+print(hits.results.june) 
+print(hits.results.sept)
+```
+
+Next, a data frame was created to list the count of states that have a gtrends ranking present for the specified search term. 
+
+```{r eval = FALSE}
+#create a data frame that lists the count of states that have a gtrends ranking for the specified search term
+get.search.terms <- function(hits_results){
+  j <- c("hits.1", "hits.2", "hits.3", "hits.4", 
+        "hits.5", "hits.6", "hits.7", "hits.8", 
+        "hits.9", "hits.10","hits.11","hits.12")
+
+  search_terms <- apply(!is.na(hits_results), 2, sum) %>%
+    as_tibble() %>%
+    slice_tail(n=12) %>%
+    cbind(j,k) %>%
+    relocate(value,.after = k)
+    
+  search_terms %<>% rename(var_name = j, search = k, num_states = value)
+  
+  print(search_terms)
+}
+
+search.terms.jan <- get.search.terms(hits.results.jan) # why does Rhode Island have two 100s?
+search.terms.june <- get.search.terms(hits.results.june) 
+search.terms.sept <- get.search.terms(hits.results.sept)
+```
 
 ```{r}
-##Use RSocrata to pull down CDC COVID vaccine data using their API
-##Dataset information available here: https://dev.socrata.com/foundry/data.cdc.gov/unsk-b7fc
-##https://data.cdc.gov/Vaccinations/COVID-19-Vaccinations-in-the-United-States-Jurisdi/unsk-b7fc
+print(search.terms.jan)
+print(search.terms.june)
+print(search.terms.sept)
+```
+## 2. Vaccine Rates and State Demographics
+```{r eval = FALSE, echo = FALSE}
+## Use RSocrata to pull down CDC COVID vaccine data using their API
+## Dataset information available here: https://dev.socrata.com/foundry/data.cdc.gov/unsk-b7fc
+## https://data.cdc.gov/Vaccinations/COVID-19-Vaccinations-in-the-United-States-Jurisdi/unsk-b7fc
 
 cdc.df <- read.socrata(
   "https://data.cdc.gov/resource/unsk-b7fc.json",
@@ -162,7 +153,7 @@ cdc.df <- read.socrata(
 ```
 
 
-```{r}
+```{r eval = FALSE, echo = FALSE}
 ##Data formatting/cleaning for CDC dataset
 
 str(cdc.df)
@@ -178,8 +169,8 @@ apply(is.na(cdc.df), 2, sum)
 ```
 
 
-```{r}
-#Drop rows for territories and federal entities; only retain 50 states and Washington, DC (Google trends only has data for these entities)
+```{r eval = FALSE, echo = FALSE}
+# Drop rows for territories and federal entities; only retain 50 states and Washington, DC (Google trends only has data for these entities)al = false
 
 table(cdc.df$location)
 
@@ -192,8 +183,8 @@ table(cdc.df.50$location)
 ```
 
 
-```{r}
-#Recode responses in CDC location variable so it matches the format used in Google Trends data, in preparation for joining datasets
+```{r eval = FALSE, echo = FALSE}
+# Recode responses in CDC location variable so it matches the format used in Google Trends data, in preparation for joining datasets
 
 cdc.df.50$location[cdc.df.50$location == "AK"] <- "Alaska"
 cdc.df.50$location[cdc.df.50$location == "AL"] <- "Alabama"
@@ -252,7 +243,7 @@ table(cdc.df.50$location)
 ```
 
 
-```{r}
+```{r eval = FALSE}
 # visualize doses administered over time for entire US
 
 cdc.df.50 %>%
@@ -263,22 +254,21 @@ cdc.df.50 %>%
 
 ```
 
+Data for the vaccine and rates is acquired by using RSocrata to pull CDC COVID vaccine data through their API. After cleaning, two datasets are created for our vaccination dates of interest,vax.June21 and vax.Sept21. 
 
-```{r}
+```{r, eval = FALSE}
 ## Create two datasets for our vaccination dates of interest
-## Might not use the June dataset in the end
 
 vax.June21 <- cdc.df.50 %>%
   filter(date == "2021-06-21")
-
-
 vax.Sept21 <- cdc.df.50 %>%
   filter(date == "2021-09-21")
 
 ```
 
+More data is needed to control for state-level demographic factors. Voter information was pulled to get the share of republican votes in 2020. In addition, median household income, percent of state population by age group, and race data was pulled and joined with the two CDC vaccine rate data. Finally, the three gtrends datasets hits.results.jan, hits.results.june, hits.results.sept are joined with either vax.June21 or vax.Sept21, depending on the dates the Trends are covering.  
 
-```{r}
+```{r eval = FALSE, echo = FALSE}
 
 ## Scrape state population info from Wikipedia. Turn into a data frame called state_pop
 
@@ -301,7 +291,7 @@ state_pop <- state_pop %>% arrange(state)
 ```
 
 
-```{r}
+```{r eval = FALSE, echo = FALSE}
 
 ## Join state population data from above with the June 21 and September 21 data frames
 
@@ -316,7 +306,8 @@ vax.Sept21 <- vax.Sept21 %>%
 vax.Sept21 %>%
   select(location, population, administered, admin_per_100k)
 ```
-```{r}
+
+```{r echo = FALSE}
 
 ## Percent of population by state that have been fully vaccinated as of September 21
 
@@ -326,7 +317,8 @@ vax.Sept21 %>%
 ```
 
 
-```{r}
+
+```{r eval = FALSE, echo = FALSE}
 
 ## Get state percentages of Trump voters info. Source is https://cookpolitical.com/2020-national-popular-vote-tracker.
 
@@ -385,7 +377,7 @@ vax.Sept21 %<>% rename(pct.vote.rep = pct.vote.rep.y, med.income = med.income.y,
 ```
 
 
-```{r}
+```{r eval = FALSE, echo = FALSE}
 ## Replace NAs in gtrends hit rates data frames with zero (assuming there is no hit rate because there aren't enough searches, so functionally it's zero)
 
 hits.results.jan[is.na(hits.results.jan)] = 0
@@ -394,7 +386,7 @@ hits.results.sept[is.na(hits.results.sept)] = 0
 ```
 
 
-```{r}
+```{r eval = FALSE}
 
 ## This function joins the gtrends dataset with vaccine info dataset
 join.gtrends.vaccine <- function (hits.results.month,vax.month){
@@ -415,7 +407,9 @@ Sept21.analysis <- join.gtrends.vaccine(hits.results.sept,vax.Sept21)
 June21.analysis <- join.gtrends.vaccine(hits.results.june,vax.June21)
 ```
 
-```{r}
+# Correlation Analysis
+
+```{r eval = FALSE}
 
 ## This function pulls the correlations for all 3 data sets 
 get.correlations <- function(month.analysis){
@@ -539,6 +533,6 @@ model2 <- lm(series_complete_pop_pct ~ pct.vote.rep + pct.black + hits.1  + hits
 summary(model2)
 ```
 
-```{r}
+```{r eval = FALSE}
 save.image(file = "shared_work_space.RData")
 ```
