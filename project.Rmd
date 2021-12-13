@@ -127,7 +127,7 @@ get.search.terms <- function(hits_results){
   print(search_terms)
 }
 
-search.terms.jan <- get.search.terms(hits.results.jan) # why does Rhode Island have two 100s?
+search.terms.jan <- get.search.terms(hits.results.jan)
 search.terms.june <- get.search.terms(hits.results.june) 
 search.terms.sept <- get.search.terms(hits.results.sept)
 ```
@@ -137,7 +137,7 @@ print(search.terms.jan)
 print(search.terms.june)
 print(search.terms.sept)
 ```
-## 2. Vaccine Rates and State Demographics
+## 2. Vaccine Rates
 ```{r eval = FALSE, echo = FALSE}
 ## Use RSocrata to pull down CDC COVID vaccine data using their API
 ## Dataset information available here: https://dev.socrata.com/foundry/data.cdc.gov/unsk-b7fc
@@ -266,6 +266,7 @@ vax.Sept21 <- cdc.df.50 %>%
 
 ```
 
+## 3. State-level Demographics
 More data is needed to control for state-level demographic factors. Voter information was pulled to get the share of republican votes in 2020. In addition, median household income, percent of state population by age group, and race data was pulled and joined with the two CDC vaccine rate data. Finally, the three gtrends datasets hits.results.jan, hits.results.june, hits.results.sept are joined with either vax.June21 or vax.Sept21, depending on the dates the Trends are covering.  
 
 ```{r eval = FALSE, echo = FALSE}
@@ -407,7 +408,9 @@ Sept21.analysis <- join.gtrends.vaccine(hits.results.sept,vax.Sept21)
 June21.analysis <- join.gtrends.vaccine(hits.results.june,vax.June21)
 ```
 
-# Correlation Analysis
+# Analysis
+
+## 1. Correlation Analysis
 
 ```{r eval = FALSE}
 
@@ -471,6 +474,7 @@ ggplot(Sept21.analysis) + geom_point(aes(hits.1, series_complete_pop_pct), color
 
 ggsave("covid.correlation.Sept.png")
 ```
+## 2. Regression Analysis
 
 ```{r}
 
