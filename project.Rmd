@@ -275,7 +275,7 @@ table(cdc.df.50$location)
 ```
 
 
-We now have data for our Google search hits from January-September, April-June, and July-September. Next, we are interested in finding the corresponding information on vaccination rates. This data is acquired by using RSocrata to pull CDC COVID vaccine data through their API. After cleaning, the datasets vax.June21 and vax.Sept21 are created, where vax.June21 corresponds to the hit results from April-June, and vax.Sept21 corresponds to January-September and July-September.Our variables of interest are series_complete_pop_pct, which is the percentage of the population in each state that has completed their vaccine series, and admin_per_100k, which is the number of vaccines admitted for each 100,000th person. 
+We now have data for our Google search hits from January-September, April-June, and July-September. Next, we are interested in finding the corresponding information on vaccination rates for each state. This data is acquired by using RSocrata to pull CDC COVID vaccine data through their API. After cleaning, the datasets vax.June21 and vax.Sept21 are created, where vax.June21 corresponds to the hit results from April-June, and vax.Sept21 corresponds to January-September and July-September.Our variables of interest are series_complete_pop_pct, which is the percentage of the population in each state that has completed their vaccine series, and admin_per_100k, which is the number of vaccines admitted for each 100,000th person. 
 
 
 ```{r}
@@ -341,7 +341,7 @@ vax.Sept21 %>%
   select(location, population, administered, admin_per_100k)
 ```
 
-```{r echo = FALSE}
+```{r eval = FALSE, echo = FALSE}
 
 ## Percent of population by state that have been fully vaccinated as of September 21
 
