@@ -1,8 +1,12 @@
 ---
 title: "COVID-19 Vaccination Rates and Google Search Data"
 author: "Arianna Schmid and Stacey Frank"
-date: "12/16/2021"
-output: pdf_document
+date: "`r Sys.Date()`"
+output:
+  pdf_document:
+    toc: yes
+    df_print: kable
+bibliography: citations.bib
 ---
 
 ```{r setup, include=FALSE}
@@ -19,6 +23,7 @@ library(tidyverse)
 library(magrittr)
 library(gtrendsR)
 library(readxl)
+library(knitr)
 
 load("shared_work_space.RData")
 
@@ -33,7 +38,7 @@ Google data is useful for exploring this topic because there is previous researc
 # Data Collection
 
 ## 1. Google Trends and Keywords
-The CDC provides lists of the most common questions about the COVID-19 vaccine. Similarly, the Mayo Clinic provides information on the most common myths surrounding the vaccine. Using these two data sources, a list of 12 keyword search terms was constructed. We call this list "k" to signify "keywords". It consists of the two general searches "covid vaccine" and "covid vaccine near me", five meainstream searches such as "covid vaccine side effects," and 5 myth-related searches such as "covid vaccine microchip."
+The CDC provides lists of the most common questions about the COVID-19 vaccine [@CDC_2021]. Similarly, the Mayo Clinic provides information on the most common myths surrounding the vaccine [@COVID-19 vaccine myths debunked_2021]. Using these two data sources, a list of 12 keyword search terms was constructed. We call this list "k" to signify "keywords". It consists of the two general searches "covid vaccine" and "covid vaccine near me", five meainstream searches such as "covid vaccine side effects," and 5 myth-related searches such as "covid vaccine microchip."
 
 ```{r eval = FALSE}
 
@@ -540,3 +545,5 @@ summary(model2)
 ```{r eval = FALSE}
 save.image(file = "shared_work_space.RData")
 ```
+
+# References
