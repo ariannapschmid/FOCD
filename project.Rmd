@@ -273,7 +273,10 @@ vax.Sept21 <- cdc.df.50 %>%
 ```
 
 ## 3. State-level Demographics
-More data is needed to control for state-level demographic factors. Voter information was pulled to get the share of republican votes in 2020. In addition, median household income, percent of state population by age group, and race data was pulled and joined with the two CDC vaccine rate data. Finally, the three gtrends datasets hits.results.jan, hits.results.june, hits.results.sept are joined with either vax.June21 or vax.Sept21, depending on the dates the Trends are covering.  
+  Certain state-level demographic factors could potentially have an impact on our analysis. We turned to different sources for this information. Data of interest included state population counts, voter information, houshold income, age group, and race. 
+
+  State population numbers were web scraped from Wikipedia using selector gadget (https://simple.wikipedia.org/wiki/List_of_U.S._states_by_population). These state counts were then joined with the vax.June21 and vax.Sept21 frames created in Part 2. 
+  
 
 ```{r eval = FALSE, echo = FALSE}
 
@@ -322,6 +325,13 @@ vax.Sept21 %>%
   select(location, series_complete_pop_pct) %>%
   arrange(series_complete_pop_pct)
 ```
+
+  In addition, voter information was downloaded from Cook Political https://cookpolitical.com/2020-national-popular-vote-tracker. Unnecessary columns were deleted and columns of interest were renamed. Here, we are primarily interested in the share of republican voters in the 2020 election.  The final spreasheet was saved as vote.xlsx. 
+  Median household income was downloaded from Census https://www2.census.gov/programs-surveys/cps/tables/time-series/historical-income-households/h08.xls and saved as med.income.xlsx. Unnecessary columns were deleted and columns of interest were selected: state(location) and median income(med.income). 
+  Percent of state population by age group was pulled from https://datacenter.kidscount.org/data/tables/6538-adult-population-by-age-group#detailed/2/2-53/false/574,1729,37,871,870,573,869,36,868,867/117,2801,2802,2803/13515,13516. The raw excel data was downloaded. Columns from years 2011-2019 were deleted since we are focusing on the most recently available data, in this case 2020. The spread() function from the tidyr package was then used to reshape from long to wide so we can split up the categorical Age Group Variable into the 3 separate 18 to 24, 25 to 64, and Ages 65 and over variables. The final spreadsheet was saved as percent.age.xlsx.
+  Race data was pulled as a csv file from the Current Population Survey. https://www.kff.org/other/state-indicator/population-distribution-by-race-ethnicity-cps/?currentTimeframe=0&sortModel=%7B%22colId%22:%22Location%22,%22sort%22:%22asc%22%7D 
+It was then converted from CSV to xlsx, unnecessary columns were deleted, columns of interest were renamed, and reported percentages of <.01 were replaced with 0 (to make all cell values integers). Categories for American Indian/Alaska Native, Native Hawaiian/Other Pacific Islander, and Multiple Races were combined into a single 'Other' category. This was saved as State Race Data.xlsx.
+  These four excel files were loaded into the FOCD Github public repository. They were then joined together in R and saved as the object "cov" (for covariates). Cov was then joined with the two CDC vaccine rate data collected in Part 2 (vax.June21 or vax.Sept21). 
 
 
 
@@ -392,6 +402,7 @@ hits.results.june[is.na(hits.results.june)] = 0
 hits.results.sept[is.na(hits.results.sept)] = 0
 ```
 
+  Finally, the three gtrends datasets from Part 1 (hits.results.jan, hits.results.june, hits.results.sept) are joined with the updated vax.June21 or vax.Sept21, depending on the dates the Trends are covering. A function called join.gtrends.vaccine accomplishes this and saves the 3 final data sets as Jan01.analysis, Sept21.analysis, and June21.analysis. Now they are ready for analysis. 
 
 ```{r eval = FALSE}
 
