@@ -7,6 +7,7 @@ output:
     toc: yes
     df_print: kable
 bibliography: citations.bib
+link_citations: true
 ---
 
 ```{r setup, include=FALSE}
@@ -38,7 +39,7 @@ Google data is useful for exploring this topic because there is previous researc
 # Data Collection
 
 ## 1. Google Trends and Keywords
-The CDC provides lists of the most common questions about the COVID-19 vaccine [@CDC_2021]. Similarly, the Mayo Clinic provides information on the most common myths surrounding the vaccine [@COVID-19 vaccine myths debunked_2021]. Using these two data sources, a list of 12 keyword search terms was constructed. We call this list "k" to signify "keywords". It consists of the two general searches "covid vaccine" and "covid vaccine near me", five meainstream searches such as "covid vaccine side effects," and 5 myth-related searches such as "covid vaccine microchip."
+The CDC provides lists of the most common questions about the COVID-19 vaccine [@cdc_covid-19_2021]. Similarly, the Mayo Clinic provides information on the most common myths surrounding the vaccine[@noauthor_covid-19_2021]. Using these two data sources, a list of 12 keyword search terms was constructed. We call this list "k" to signify "keywords". It consists of the two general searches "covid vaccine" and "covid vaccine near me", five meainstream searches such as "covid vaccine side effects," and 5 myth-related searches such as "covid vaccine microchip."
 
 ```{r eval = FALSE}
 
