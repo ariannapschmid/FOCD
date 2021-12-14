@@ -60,6 +60,10 @@ k <- c( "covid vaccine",
 
 ```
 
+```{r echo = FALSE}
+kable(k, col.names = c('Search Term'), caption = "Google Search Terms")
+```
+
 The gtrendsR package was used to work with Google Trends Queries. This allowed us to look at the trends, or number of hits, for each of the 12 keyword searches. In addition, we studied the hit results in each of the 50 states and the District of Columbia. Trends data was pulled for three time periods: 1/1/21-9/20/21, 4/1/21-6/20/21, and 7/1/21-9/20/21 since vaccine availability varied by state. Furthermore, each element in "k" was renamed based on its index (hits.1, hits.2, ...hits.12) for code efficiency. 
 
 ```{r eval = FALSE }
@@ -107,10 +111,17 @@ hits.results.june <- get.hits.results("2021-04-1 2021-06-20")
 hits.results.sept <- get.hits.results("2021-07-1 2021-09-20")
 ```
 
-```{r}
-print(hits.results.jan) 
-print(hits.results.june) 
-print(hits.results.sept)
+```{r echo = FALSE}
+
+hits.results.jan %>%
+  arrange(location)
+
+hits.results.june %>%
+  arrange(location)
+
+hits.results.sept %>%
+  arrange(location)
+
 ```
 
 Next, a data frame was created to list the count of states that have a gtrends ranking present for the specified search term. 
@@ -138,10 +149,21 @@ search.terms.june <- get.search.terms(hits.results.june)
 search.terms.sept <- get.search.terms(hits.results.sept)
 ```
 
-```{r}
-print(search.terms.jan)
-print(search.terms.june)
-print(search.terms.sept)
+```{r echo = FALSE}
+
+kable(
+  search.terms.jan, 
+  col.names = c('Variable Name', 'Search Term', 'Number of States with Hit Rate'), caption = "January-September: Number of States with Hit Rates by Search")
+
+kable(
+  search.terms.june, 
+  col.names = c('Variable Name', 'Search Term', 'Number of States with Hit Rate'), caption = "April-June: Number of States with Hit Rates by Search")
+
+kable(
+  search.terms.sept, 
+  col.names = c('Variable Name', 'Search Term', 'Number of States with Hit Rate'), caption = "July-September: Number of States with Hit Rates by Search")
+
+
 ```
 ## 2. Vaccine Rates
 ```{r eval = FALSE, echo = FALSE}
@@ -249,17 +271,6 @@ table(cdc.df.50$location)
 ```
 
 
-```{r eval = FALSE}
-# visualize doses administered over time for entire US
-
-cdc.df.50 %>%
-  group_by(date) %>%
-  summarize(administered = sum(administered)) %>%
-  ggplot() +
-  geom_line(mapping = aes(x = date, y = administered))
-
-```
-
 Data for the vaccine and rates is acquired by using RSocrata to pull CDC COVID vaccine data through their API. After cleaning, two datasets are created for our vaccination dates of interest,vax.June21 and vax.Sept21. 
 
 ```{r, eval = FALSE}
@@ -323,7 +334,8 @@ vax.Sept21 %>%
 
 vax.Sept21 %>%
   select(location, series_complete_pop_pct) %>%
-  arrange(series_complete_pop_pct)
+  arrange(series_complete_pop_pct) %>%
+  kable(col.names = c('State', 'Percent Pop. Fully vaccinated'), caption = " State Level Percent of Population Fully Vaccinated by September 2021")
 ```
 
   In addition, voter information was downloaded from Cook Political https://cookpolitical.com/2020-national-popular-vote-tracker. Unnecessary columns were deleted and columns of interest were renamed. Here, we are primarily interested in the share of republican voters in the 2020 election.  The final spreasheet was saved as vote.xlsx. 
