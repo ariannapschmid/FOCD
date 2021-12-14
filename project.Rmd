@@ -32,14 +32,14 @@ load("shared_work_space.RData")
 
 # Introduction
 
-Vaccines to control the coronavirus disease 2019 (COVID-19) became available to the public in the first half of 2021. Rejection and indecision towards being vaccinated is evident across the United States.The motivation for this study is to provide a better understanding of reasons for COVID-19 vaccine refusal in the United States. This can help public health messaging campaigns be more targeted and effective when promoting vaccination. 
+Vaccines to control the Coronavirus disease 2019 (COVID-19) became available to the public in the first half of 2021. Rejection and indecision towards being vaccinated is evident across the United States.The motivation for this study is to provide a better understanding of reasons for COVID-19 vaccine refusal in the United States. This can help public health messaging campaigns be more targeted and effective when promoting vaccination. 
 
 Google data is useful for exploring this topic because there is previous research that people feel freer to Google socially stigmatized topics than they would be to admit such opinions in a survey or other form of data collection. As a result, our primary research question is what is the relationship, if any, between state-level COVID-19 vaccine rates and the types of Google searches that are made about vaccines? In particular, are vaccine myths more commonly searched for in states that also have low vaccination rates? A secondary question we investigate is does the relationship between COVID vaccine rates and Google searches change between June and September 2021?
 
 # Data Collection
 
 ## 1. Google Trends and Keywords
-The CDC provides lists of the most common questions about the COVID-19 vaccine [@cdc_covid-19_2021]. Similarly, the Mayo Clinic provides information on the most common myths surrounding the vaccine[@noauthor_covid-19_2021]. Using these two data sources, a list of 12 keyword search terms was constructed. We call this list "k" to signify "keywords". It consists of the two general searches "covid vaccine" and "covid vaccine near me", five meainstream searches such as "covid vaccine side effects," and 5 myth-related searches such as "covid vaccine microchip."
+The CDC provides lists of the most common questions about the COVID-19 vaccine [@cdc_covid-19_2021]. Similarly, the Mayo Clinic provides information on the most common myths surrounding the vaccine[@noauthor_covid-19_2021]. Using these two data sources, a list of 12 keyword search terms was constructed. We call this list "k" to signify "keywords". It consists of the two general searches "covid vaccine" and "covid vaccine near me", five meainstream searches such as "covid vaccine side effects," and 5 myth-related searches such as "covid vaccine microchip." Note that each element in "k" is going to be renamed based on its index (hits.1, hits.2, ...hits.12) for code efficiency.
 
 ```{r eval = FALSE}
 
@@ -64,9 +64,12 @@ k <- c( "covid vaccine",
 kable(k, col.names = c('Search Term'), caption = "Google Search Terms")
 ```
 
-The gtrendsR package was used to work with Google Trends Queries. This allowed us to look at the trends, or number of hits, for each of the 12 keyword searches. In addition, we studied the hit results in each of the 50 states and the District of Columbia. Trends data was pulled for three time periods: 1/1/21-9/20/21, 4/1/21-6/20/21, and 7/1/21-9/20/21 since vaccine availability varied by state. Furthermore, each element in "k" was renamed based on its index (hits.1, hits.2, ...hits.12) for code efficiency. 
 
-```{r eval = FALSE }
+We are interested in studying the number of search hits for all 12 terms in "k" for all 50 states and Washington, D.C. Since vaccines were made available to states at different points in time, we look at results from 3 different time periods: 1/1/21-9/20/21, 4/1/21-6/20/21, and 7/1/21-9/20/21.The gtrendsR package was used to work with Google Trends Queries. 
+The function get.hit.results() takes in the date range as an argument, calls gtrends() 12 times (once for each search term), and returns the hit results by region based on that date. The function is called 3 times, once for each date range, and the result is saved in the 3 objects hits.results.jan, hits.results.june, and hits.results.sept.
+
+
+```{r eval = FALSE, echo = FALSE }
 get.hits.results <-  function(date){
     for (i in 1:length(k)){
           new_frame <- paste("Keyword",i,sep = "")
@@ -124,9 +127,10 @@ hits.results.sept %>%
 
 ```
 
-Next, a data frame was created to list the count of states that have a gtrends ranking present for the specified search term. 
+Next, we are interested in getting the count of states that actually have a gtrends ranking for each search term. This is accomplished through the get.search.terms() function. It takes the hits results object from get.hit.results() as an argument, and returns the sum of states that are present for each search term in "k". Again, the function is called 3 times for each time period, and results are saved to the objects search.terms.jan, search.terms.june, and search.terms.sept. As an example, we see in Table 6 that for April-June, "covid vaccine," "covid vaccine near me," and	"covid vaccine side effects" have hits in all 50 states and Washington DC. On the other hand, "covid vaccine microchip" was only searched for in 17 states. 
 
-```{r eval = FALSE}
+
+```{r eval = FALSE, echo = FALSE}
 #create a data frame that lists the count of states that have a gtrends ranking for the specified search term
 get.search.terms <- function(hits_results){
   j <- c("hits.1", "hits.2", "hits.3", "hits.4", 
@@ -271,7 +275,16 @@ table(cdc.df.50$location)
 ```
 
 
-Data for the vaccine and rates is acquired by using RSocrata to pull CDC COVID vaccine data through their API. After cleaning, two datasets are created for our vaccination dates of interest,vax.June21 and vax.Sept21. 
+We now have data for our Google search hits from January-September, April-June, and July-September. Next, we are interested in finding the corresponding information on vaccination rates. This data is acquired by using RSocrata to pull CDC COVID vaccine data through their API. After cleaning, the datasets vax.June21 and vax.Sept21 are created, where vax.June21 corresponds to the hit results from April-June, and vax.Sept21 corresponds to January-September and July-September.Our variables of interest are series_complete_pop_pct, which is the percentage of the population in each state that has completed their vaccine series, and admin_per_100k, which is the number of vaccines admitted for each 100,000th person. 
+
+
+```{r}
+x <- vax.June21 %>% select(location, series_complete_pop_pct, admin_per_100k) %>% arrange(location)
+kable(head(x, n = 10), caption = "vax.June21")
+y <- vax.Sept21 %>% select(location, series_complete_pop_pct, admin_per_100k) %>% arrange(location)
+kable(head(x, n = 10), caption = "vax.Sept21")
+
+```
 
 ```{r, eval = FALSE}
 ## Create two datasets for our vaccination dates of interest
@@ -284,7 +297,7 @@ vax.Sept21 <- cdc.df.50 %>%
 ```
 
 ## 3. State-level Demographics
-  Certain state-level demographic factors could potentially have an impact on our analysis. We turned to different sources for this information. Data of interest included state population counts, voter information, houshold income, age group, and race. 
+  Certain state-level demographic factors could potentially have an impact on our analysis. We turned to different sources for this information. Data of interest included state population counts, voter information, household income, age group, and race. 
 
   State population numbers were web scraped from Wikipedia using selector gadget (https://simple.wikipedia.org/wiki/List_of_U.S._states_by_population). These state counts were then joined with the vax.June21 and vax.Sept21 frames created in Part 2. 
   
@@ -414,7 +427,7 @@ hits.results.june[is.na(hits.results.june)] = 0
 hits.results.sept[is.na(hits.results.sept)] = 0
 ```
 
-  Finally, the three gtrends datasets from Part 1 (hits.results.jan, hits.results.june, hits.results.sept) are joined with the updated vax.June21 or vax.Sept21, depending on the dates the Trends are covering. A function called join.gtrends.vaccine accomplishes this and saves the 3 final data sets as Jan01.analysis, Sept21.analysis, and June21.analysis. Now they are ready for analysis. 
+  Finally, the three gtrends datasets from Part 1 (hits.results.jan, hits.results.june, hits.results.sept) are joined with the updated vax.June21 or vax.Sept21, depending on the dates the Trends are covering. A function called join.gtrends.vaccine() accomplishes this and saves the 3 final data sets as Jan01.analysis, Sept21.analysis, and June21.analysis. Now they are ready for analysis. 
 
 ```{r eval = FALSE}
 
