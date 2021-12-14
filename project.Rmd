@@ -297,7 +297,7 @@ vax.Sept21 <- cdc.df.50 %>%
 ```
 
 ## 3. State-level Demographics
-  Certain state-level demographic factors could potentially have an impact on our analysis. We turned to different sources for this information. Data of interest included state population counts, voter information, household income, age group, and race. 
+  We now have our search hit results and vaccine rates. Before studying any correlations, we consider certain state-level demographic factors that could potentially have an impact on our analysis. Data of interest includes state population counts, voter information, household income, age group, and race. 
 
   State population numbers were web scraped from Wikipedia using selector gadget (https://simple.wikipedia.org/wiki/List_of_U.S._states_by_population). These state counts were then joined with the vax.June21 and vax.Sept21 frames created in Part 2. 
   
