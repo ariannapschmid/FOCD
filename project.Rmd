@@ -523,8 +523,8 @@ June21.correlations <- get.correlations(June21.analysis)
 ```
 Results from Jan01.correlations and June21.correlations show that the correlation patterns are fairly similar for January-September and for April-June. In both cases, the more mainstream searches are positively correlated, and the myth-related searches are negatively correlated (with the exception of April-June, where infertility has a small positive correlation).
 
-On the other hand, correlation patterns from Sept21.correlations are very different. Our results show for July-September searches, nearly all the search terms have a negative correlation. This is likely because most people in states with high vaccination rates had already been vaccinated by July. As a result, in these states, there are less people searching for vaccine information after July. Therefore in general, more of the vaccine searches (of all types) were happening in low vaccine rate states during July-September. This explains why 'covid vaccine' searches are positively correlated with vaccine rates when looking at the overall January-September searches-- but when just looking at July-September, they are negatively correlated since vaccinated people were no longer searching for vaccine info.
-The table below shows these correlation patterns for all three time periods.
+On the other hand, correlation patterns from Sept21.correlations are very different. Our results show for July-September searches, nearly all the search terms have a negative correlation. This is likely because most people in states with high vaccination rates had already been vaccinated by July. As a result, in these states, there are less people searching for vaccine information after July. Therefore in general, more of the vaccine searches (of all types) were happening in low vaccine rate states during July-September. This explains why 'covid vaccine' searches are positively correlated with vaccine rates when looking at the overall January-September searches-- but when just looking at July-September, they are negatively correlated since vaccinated people were no longer searching for vaccine info(see Figure 1 below).
+Table 7 shows these correlation patterns for all three time periods.
 
 ```{r echo = FALSE}
 
@@ -537,35 +537,44 @@ knitr::kable(est,
 )
 ```
 
-The tables below show the different correlation patterns between searches for 'COVID Vaccine' and State Vaccination rates in both time periods January-September and July-September. We see a statistically significant positive correlation for the entire span of Jan-Sept, and a negative correlation when we restrict ourselves to July-Sept.
+Figure 1 shows the different correlation patterns between searches for 'COVID Vaccine' and State Vaccination rates in two time periods. We see a statistically significant positive correlation for the entire span of January-September, and a negative correlation when we restrict ourselves to July-September.
 
 
-```{r, figures-side, fig.show="hold", out.width="50%", fig.height = 4, fig.width = 5, echo = FALSE}
+```{r, echo = FALSE, fig.height = 4}
 ##Plotting of correlations
+
+cor_plots = list()
 
 #Jan-Sept Searches
 # using series_complete_pop_pct as measure for state vaccination rate                
-ggplot(Jan01.analysis) + geom_point(aes(hits.1, series_complete_pop_pct), color = '#24d0bc', size = 3) + 
-      labs(y = "State % Pop. Completed Vax Series", x = "Search Volume for 'COVID Vaccine'") +
-      ggtitle("January-September") + 
-      theme(axis.text=element_text(size=14), axis.title=element_text(size=14),
-            plot.title = element_text(hjust = 1.5, vjust = 0.5))
+cor_plots$cor1 = ggplot(Jan01.analysis) + 
+                geom_point(aes(hits.1, series_complete_pop_pct), color = '#24d0bc', size = 3) + 
+                labs(y = "", x = "Search Volume") +
+                ggtitle(" \n January-September") + 
+                theme(axis.text=element_text(size=10), axis.title=element_text(size=10),
+                      plot.title = element_text(hjust = 0.5, vjust = 0.5, size = 10))
 
-#ggsave("covid.correlation.Jan.png")
-
+ggsave("covid.correlation.Jan.png")
 
 #July-September Searches
 # using series_complete_pop_pct as measure for state vaccination rate                
-ggplot(Sept21.analysis) + geom_point(aes(hits.1, series_complete_pop_pct), color = '#24d0bc', size = 3) + 
-      labs(y = "State % Pop. Completed Vax Series", x = "Search Volume for 'COVID Vaccine'") +
-      ggtitle("") +
-      theme(axis.text=element_text(size=14), axis.title=element_text(size=14))
+cor_plots$cor2 = ggplot(Sept21.analysis) + 
+                geom_point(aes(hits.1, series_complete_pop_pct), color = '#24d0bc', size = 3) + 
+                labs( y = "", x = "Search Volume") +
+                ggtitle(" \n July-September") +
+                theme(axis.text=element_text(size=10), axis.title=element_text(size=10),
+                 plot.title = element_text(hjust = 0.5, vjust = 0.5, size = 10 ))
 
 
-#ggsave("covid.correlation.Sept.png")
+ggsave("covid.correlation.Sept.png")
+
+grid.arrange(cor_plots$cor1, cor_plots$cor2,
+ ncol = 2, top="Figure 1: Correlations Between Searches for \n 'COVID Vaccine' and State Vaccination Rates",
+ left = "State % Pop. Completed Vax Series"
+ )
 ```
 
-Very few of the correlations are statistically significant at level .05. Hence, we will incorporate the social demographic variables from Data Collection Part 3 as covariates for a regression analysis.
+Still, there are very few cases where we have statistically significant correlations at level .05. For this reason, we will incorporate the social demographic variables from Data Collection Part 3 as covariates for a regression analysis.
 
 ## 2. Regression Analysis
 Given the lack of significant results in our correlation analysis, we next sought to use linear regression to determine the primary predictors of state vaccination rates. 
