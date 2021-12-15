@@ -8,6 +8,7 @@ output:
     df_print: kable
 bibliography: citations.bib
 link_citations: true
+linkcolor: blue
 ---
 
 ```{r setup, include=FALSE}
@@ -25,6 +26,9 @@ library(magrittr)
 library(gtrendsR)
 library(readxl)
 library(knitr)
+library(grid)
+library(gridExtra)
+library(lattice)
 
 load("shared_work_space.RData")
 
@@ -32,44 +36,50 @@ load("shared_work_space.RData")
 
 # Introduction
 
-Vaccines to control the Coronavirus disease 2019 (COVID-19) became available to the public in the first half of 2021. Rejection and indecision towards being vaccinated is evident across the United States.The motivation for this study is to provide a better understanding of reasons for COVID-19 vaccine refusal in the United States. This can help public health messaging campaigns be more targeted and effective when promoting vaccination. 
+Vaccines to control the Coronavirus Disease 2019 (COVID-19) became available to the public in the first half of 2021. Rejection and indecision towards being vaccinated is evident across the United States. The motivation for this study is to provide a better understanding of reasons for COVID-19 vaccine refusal in the United States. This can help public health messaging campaigns be more targeted and effective when promoting vaccination. 
 
-Google data is useful for exploring this topic because there is previous research that people feel freer to Google socially stigmatized topics than they would be to admit such opinions in a survey or other form of data collection. As a result, our primary research question is what is the relationship, if any, between state-level COVID-19 vaccine rates and the types of Google searches that are made about vaccines? In particular, are vaccine myths more commonly searched for in states that also have low vaccination rates? A secondary question we investigate is does the relationship between COVID vaccine rates and Google searches change between June and September 2021?
+Google data is useful for exploring this topic because there is previous research that people feel freer to search for socially stigmatized topics on Google than they would be to admit such opinions in a survey or another form of data collection. In his study of racial animus's relationship to voting behavior, Stephens-Davidowitz notes that Google searchers are likely to be alone and thus more likely to search for private topics [@stephens-davidowitz_cost_2014]. Since we are interested in understanding how myths and conspiracies are playing into people's choice to receive the vaccine or not, Google searches are a useful source of data about the prevalence and impact of these ideas. 
+
+## Research Questions
+
+Our primary research question is what is the relationship, if any, between state-level COVID-19 vaccine rates and the types of Google searches that are made about vaccines in each state? To assist in answering that question, we have two secondary research questions: 
+
+1. Are vaccine myths more commonly searched for in states that also have low vaccination rates? 
+2. Does the relationship between COVID vaccine rates and Google searches change between June and September 2021?
+
+We will use Google search data, state level COVID vaccination rate information from the Centers for Disease Control, and state-level demographic information to address these questions. 
 
 # Data Collection
 
 ## 1. Google Trends and Keywords
-The CDC provides lists of the most common questions about the COVID-19 vaccine [@cdc_covid-19_2021]. Similarly, the Mayo Clinic provides information on the most common myths surrounding the vaccine[@noauthor_covid-19_2021]. Using these two data sources, a list of 12 keyword search terms was constructed. We call this list "k" to signify "keywords". It consists of the two general searches "covid vaccine" and "covid vaccine near me", five meainstream searches such as "covid vaccine side effects," and 5 myth-related searches such as "covid vaccine microchip." Note that each element in "k" is going to be renamed based on its index (hits.1, hits.2, ...hits.12) for code efficiency.
 
-```{r eval = FALSE}
+The Centers for Disease Control provides a list of the most common questions about the COVID-19 vaccine, including mainstream questions and myths [@cdc_covid-19_2021]. Similarly, the Mayo Clinic provides information on the most common myths surrounding the vaccine [@noauthor_covid-19_2021]. Using these two data sources, we constructed a list of 12 keyword search terms. It consists of the two general searches, "covid vaccine" and "covid vaccine near me", five mainstream questions, such as "covid vaccine side effects," and 5 myth-related searches such as "covid vaccine microchip." 
+
+We created a vector called "k" to signify "keywords" and referenced this vector in later code to loop over the search terms for which we wanted to collect data. Note that each element in "k" will be renamed based on its index (hits.1, hits.2, ...hits.12) for code efficiency.
+
+```{r eval = FALSE, include = FALSE}
 
 # Gtrends keyword searches
-# Info about keyword searches: https://github.com/PMassicotte/gtrendsR/issues/268
-k <- c( "covid vaccine",
-        "covid vaccine near me",
-        "covid vaccine safe", 
-        "covid vaccine ingredients", 
-        "covid vaccine pregnant", 
-        "covid vaccine protect", 
-        "covid vaccine side effects", 
-        "covid vaccine microchip", 
-        "covid vaccine dna", 
-        "covid vaccine fetal", 
-        "covid vaccine infertility", 
-        "covid vaccine magnet")
+k <- c( "covid vaccine", "covid vaccine near me", "covid vaccine safe", "covid vaccine ingredients", 
+        "covid vaccine pregnant", "covid vaccine protect", "covid vaccine side effects", "covid vaccine microchip", 
+        "covid vaccine dna", "covid vaccine fetal", "covid vaccine infertility", "covid vaccine magnet")
 
 ```
 
 ```{r echo = FALSE}
-kable(k, col.names = c('Search Term'), caption = "Google Search Terms")
+kable(k, col.names = c('Search Term'), caption = "Google Search Terms in Vector 'k'")
 ```
 
 
-We are interested in studying the number of search hits for all 12 terms in "k" for all 50 states and Washington, D.C. Since vaccines were made available to states at different points in time, we look at results from 3 different time periods: 1/1/21-9/20/21, 4/1/21-6/20/21, and 7/1/21-9/20/21.The gtrendsR package was used to work with Google Trends Queries. 
-The function get.hit.results() takes in the date range as an argument, calls gtrends() 12 times (once for each search term), and returns the hit results by region based on that date. The function is called 3 times, once for each date range, and the result is saved in the 3 objects hits.results.jan, hits.results.june, and hits.results.sept.
+We are interested in studying the Google search hit rate for all 12 terms in "k" for all 50 states and Washington, D.C. Since vaccines were made available to states at different points in time, and the nature of people's concerns about the vaccine may have changed over time, we pulled search hit rates from 3 different time periods: 1/1/21-9/20/21, 4/1/21-6/20/21, and 7/1/21-9/20/21.The gtrendsR package was used to work with Google Trends queries. 
+
+We created the custom function get.hit.results() to iterate through all the Google Trends queries we wanted to run without repeating code. The function takes in the date range as an argument, calls gtrends() once for each of the 12 search terms, and returns the hit results by state based on the given date range. The hit rates by state for each search term are then extracted from the list initially generated by the gtrendsr() query, and saved into a single tibble containing the hit rates for all 12 search terms for the specified time period. The function is called 3 times, once for each date range, and the result is saved in the 3 objects hits.results.jan, hits.results.june, and hits.results.sept.
 
 
-```{r eval = FALSE, echo = FALSE }
+```{r eval = FALSE}
+
+#User-defined function to run all needed Google Trends queries
+
 get.hits.results <-  function(date){
     for (i in 1:length(k)){
           new_frame <- paste("Keyword",i,sep = "")
@@ -114,7 +124,7 @@ hits.results.june <- get.hits.results("2021-04-1 2021-06-20")
 hits.results.sept <- get.hits.results("2021-07-1 2021-09-20")
 ```
 
-```{r echo = FALSE}
+```{r echo = FALSE, eval= FALSE}
 
 hits.results.jan %>%
   arrange(location)
@@ -127,7 +137,7 @@ hits.results.sept %>%
 
 ```
 
-Next, we are interested in getting the count of states that actually have a gtrends ranking for each search term. This is accomplished through the get.search.terms() function. It takes the hits results object from get.hit.results() as an argument, and returns the sum of states that are present for each search term in "k". Again, the function is called 3 times for each time period, and results are saved to the objects search.terms.jan, search.terms.june, and search.terms.sept. As an example, we see in Table 6 that for April-June, "covid vaccine," "covid vaccine near me," and	"covid vaccine side effects" have hits in all 50 states and Washington DC. On the other hand, "covid vaccine microchip" was only searched for in 17 states. 
+Next, we are interested in getting the count of states that actually have a Google Trends ranking for each search term. We do this to ensure we are using search terms that are popular enough to have generated a hit rate, which will allow us to actually conduct our analysis. We accomplish this through the user-created get.search.terms() function. This function takes the hits results object from get.hit.results() as an argument, and returns the total number of states that have a reported hit rate for each search term in "k". Again, the function is called 3 times for each time period, and results are saved to the objects search.terms.jan, search.terms.june, and search.terms.sept. As an example, we see in Table 6 that for April-June, "covid vaccine," "covid vaccine near me," and	"covid vaccine side effects" have reported hit rates in all 50 states and Washington DC. On the other hand, "covid vaccine microchip" was only searched often enough to generate a hit rate in 17 states. 
 
 
 ```{r eval = FALSE, echo = FALSE}
@@ -169,7 +179,8 @@ kable(
 
 
 ```
-## 2. Vaccine Rates
+## 2. Vaccination Rates
+
 ```{r eval = FALSE, echo = FALSE}
 ## Use RSocrata to pull down CDC COVID vaccine data using their API
 ## Dataset information available here: https://dev.socrata.com/foundry/data.cdc.gov/unsk-b7fc
@@ -275,18 +286,35 @@ table(cdc.df.50$location)
 ```
 
 
-We now have data for our Google search hits from January-September, April-June, and July-September. Next, we are interested in finding the corresponding information on vaccination rates for each state. This data is acquired by using RSocrata to pull CDC COVID vaccine data through their API. After cleaning, the datasets vax.June21 and vax.Sept21 are created, where vax.June21 corresponds to the hit results from April-June, and vax.Sept21 corresponds to January-September and July-September.Our variables of interest are series_complete_pop_pct, which is the percentage of the population in each state that has completed their vaccine series, and admin_per_100k, which is the number of vaccines admitted for each 100,000th person. 
+We now have data for our Google search hits from January-September, April-June, and July-September. Next, we are interested in finding the corresponding information on vaccination rates for each state. This data is acquired by using RSocrata to pull COVID vaccine data from the Centers for Disease Control website via their API. After pulling the data into R, we did some basic data cleaning, including converting variables to a numeric type and dropping rows for U.S. territories and federal entities for which we did not have corresponding Google Trends data. We also recoded the state variable, which previously used the two-letter postal code for state (AK, AZ, etc.), to use the full state name. This was done so that the CDC data could be joined with the Google Trends data by state. 
 
+After cleaning, the datasets vax.June21 and vax.Sept21 are created, where vax.June21 will correspond to the Google Trends hit results from April-June, and vax.Sept21 will correspond to January-September and July-September Google Trends hit results. We are focusing on the vaccination rates in June and September 2021 because June is around the time when vaccines became widely available to anyone who wanted one, while September 21, 2021 is the day before boosters for some at-risk groups were approved by the CDC. By doing this, we are restricting our analysis to the time before boosters were available. Our variables of interest are series_complete_pop_pct, which is the percentage of the population in each state that has completed their vaccine series, and admin_per_100k, which is the number of vaccines administered in each state per 100,000 people. 
 
-```{r}
-x <- vax.June21 %>% select(location, series_complete_pop_pct, admin_per_100k) %>% arrange(location)
-kable(head(x, n = 10), caption = "vax.June21")
-y <- vax.Sept21 %>% select(location, series_complete_pop_pct, admin_per_100k) %>% arrange(location)
-kable(head(x, n = 10), caption = "vax.Sept21")
+The tables below list the top 10 states by percent of the population fully vaccinated in June and September 2021. 
+
+```{r include=FALSE}
+
+x <- vax.June21 %>%
+  select(location, series_complete_pop_pct, admin_per_100k) %>%
+  arrange(desc(series_complete_pop_pct))
+
+y <- vax.Sept21 %>%
+  select(location, series_complete_pop_pct, admin_per_100k) %>%
+  arrange(desc(series_complete_pop_pct))
+
 
 ```
 
-```{r, eval = FALSE}
+
+```{r echo= FALSE}
+
+kable(head(x, n = 10), col.names = c('State', 'Percent Pop. Fully vaccinated', 'Administered Per 100K'), caption = "Top 10 States for % Population Vaccinated: June 2021")
+
+kable(head(y, n = 10), col.names = c('State', 'Percent Pop. Fully vaccinated', 'Administered Per 100K'), caption = "Top 10 States for % Population Vaccinated: September 2021")
+
+```
+
+```{r, eval = FALSE, echo = FALSE}
 ## Create two datasets for our vaccination dates of interest
 
 vax.June21 <- cdc.df.50 %>%
@@ -297,9 +325,7 @@ vax.Sept21 <- cdc.df.50 %>%
 ```
 
 ## 3. State-level Demographics
-  We now have our search hit results and vaccine rates. Before studying any correlations, we consider certain state-level demographic factors that could potentially have an impact on our analysis. Data of interest includes state population counts, voter information, household income, age group, and race. 
-
-  State population numbers were web scraped from Wikipedia using selector gadget (https://simple.wikipedia.org/wiki/List_of_U.S._states_by_population). These state counts were then joined with the vax.June21 and vax.Sept21 frames created in Part 2. 
+We now have our search hit results and vaccine rates. Before studying any correlations, we consider certain state-level demographic factors that could potentially have an impact on our analysis. Data of interest includes state population counts, voter information, household income, age group, and race. 
   
 
 ```{r eval = FALSE, echo = FALSE}
@@ -351,12 +377,15 @@ vax.Sept21 %>%
   kable(col.names = c('State', 'Percent Pop. Fully vaccinated'), caption = " State Level Percent of Population Fully Vaccinated by September 2021")
 ```
 
-  In addition, voter information was downloaded from Cook Political https://cookpolitical.com/2020-national-popular-vote-tracker. Unnecessary columns were deleted and columns of interest were renamed. Here, we are primarily interested in the share of republican voters in the 2020 election.  The final spreasheet was saved as vote.xlsx. 
-  Median household income was downloaded from Census https://www2.census.gov/programs-surveys/cps/tables/time-series/historical-income-households/h08.xls and saved as med.income.xlsx. Unnecessary columns were deleted and columns of interest were selected: state(location) and median income(med.income). 
-  Percent of state population by age group was pulled from https://datacenter.kidscount.org/data/tables/6538-adult-population-by-age-group#detailed/2/2-53/false/574,1729,37,871,870,573,869,36,868,867/117,2801,2802,2803/13515,13516. The raw excel data was downloaded. Columns from years 2011-2019 were deleted since we are focusing on the most recently available data, in this case 2020. The spread() function from the tidyr package was then used to reshape from long to wide so we can split up the categorical Age Group Variable into the 3 separate 18 to 24, 25 to 64, and Ages 65 and over variables. The final spreadsheet was saved as percent.age.xlsx.
-  Race data was pulled as a csv file from the Current Population Survey. https://www.kff.org/other/state-indicator/population-distribution-by-race-ethnicity-cps/?currentTimeframe=0&sortModel=%7B%22colId%22:%22Location%22,%22sort%22:%22asc%22%7D 
-It was then converted from CSV to xlsx, unnecessary columns were deleted, columns of interest were renamed, and reported percentages of <.01 were replaced with 0 (to make all cell values integers). Categories for American Indian/Alaska Native, Native Hawaiian/Other Pacific Islander, and Multiple Races were combined into a single 'Other' category. This was saved as State Race Data.xlsx.
-  These four excel files were loaded into the FOCD Github public repository. They were then joined together in R and saved as the object "cov" (for covariates). Cov was then joined with the two CDC vaccine rate data collected in Part 2 (vax.June21 or vax.Sept21). 
+State population numbers were web scraped from Wikipedia using Selector Gadget [@noauthor_list_2021]. These state counts were then joined with the vax.June21 and vax.Sept21 frames created in Part 2. In addition, information on the Trump vote share in the 2020 presidential election for each state was downloaded from the Cook Political Report [@noauthor_2020_nodate]. Unnecessary columns were deleted and columns of interest were renamed. The final spreadsheet was saved as vote.xlsx. 
+
+Median household income information from the 2018 Current Population Survey was downloaded from the U.S. Census Bureau website and saved as med.income.xlsx [@noauthor_current_nodate]. Unnecessary columns were deleted and columns of interest were selected: state (location) and median income (med.income). 
+
+Percent of state population by age group was pulled from the Kids Count Data Center [@noauthor_adult_nodate] The raw Excel data was downloaded. Columns from years 2011-2019 were deleted since we are focusing on the most recently available data, in this case 2020. The spread() function from the tidyr package was then used to reshape from long to wide so we can split up the categorical Age Group Variable into the 3 separate variables: ages 18 to 24, ages 25 to 64, and ages 65 and over. The final spreadsheet was saved as percent.age.xlsx.
+
+Race data from the 2020 Current Population Survey was pulled as a csv file from the Kaiser Family Foundation website [@noauthor_population_2021]. It was then converted from CSV to xlsx, unnecessary columns were deleted, columns of interest were renamed, and reported percentages of <.01 were replaced with 0 to make all cell values integers. Categories for American Indian/Alaska Native, Native Hawaiian/Other Pacific Islander, and Multiple Races were combined into a single 'Other' race category. This was saved as State Race Data.xlsx.
+
+These four excel files were loaded into the FOCD Github public repository. They were then joined together in R and saved as the object "cov" (for covariates). This object was then joined with the two CDC vaccine rate data frames created in Part 2 (vax.June21 or vax.Sept21). 
 
 
 
@@ -427,11 +456,12 @@ hits.results.june[is.na(hits.results.june)] = 0
 hits.results.sept[is.na(hits.results.sept)] = 0
 ```
 
-  Finally, the three gtrends datasets from Part 1 (hits.results.jan, hits.results.june, hits.results.sept) are joined with the updated vax.June21 or vax.Sept21, depending on the dates the Trends are covering. A function called join.gtrends.vaccine() accomplishes this and saves the 3 final data sets as Jan01.analysis, Sept21.analysis, and June21.analysis. Now they are ready for analysis. 
+Finally, the three gtrends datasets from Part 1 (hits.results.jan, hits.results.june, hits.results.sept) are joined with the updated vax.June21 or vax.Sept21, depending on the dates the Trends are covering. A user-defined function called join.gtrends.vaccine() accomplishes this and saves the 3 final data sets as Jan01.analysis, Sept21.analysis, and June21.analysis. Now they are ready for analysis. 
 
 ```{r eval = FALSE}
 
-## This function joins the gtrends dataset with vaccine info dataset
+## This function joins the gtrends datasets with vaccine info datasets
+
 join.gtrends.vaccine <- function (hits.results.month,vax.month){
   
   month.analysis <- vax.month %>% 
@@ -517,13 +547,13 @@ ggplot(Sept21.analysis) + geom_point(aes(hits.1, series_complete_pop_pct), color
 ggsave("covid.correlation.Sept.png")
 ```
 ## 2. Regression Analysis
+Given the lack of significant results in our correlation analysis, we next sought to use linear regression to determine the primary predictors of state vaccination rates. 
 
-```{r}
-
+```{r include = FALSE}
 # Plotting and regression analysis
 
 Jan01.analysis %>% select(series_complete_pop_pct, pct.vote.rep,med.income,
-                          pct.18.to.24,pct.25.to.64,pct.65.over) %>% 
+                          pct.18.to.24,pct.25.to.64,pct.65.over) %>%
                           plot()
 
 ##percent republican and median income seem to have a linear relationship with series_complete_pop_pct; age does not seem to have any relationship with vax rates
@@ -548,14 +578,41 @@ Jan01.analysis %>% select(series_complete_pop_pct, hits.9,hits.10,hits.11,hits.1
                           plot()
 
 #No strong relationships here
+```
+```{r echo = FALSE}
 
+sc_plots = list()
 
+sc_plots$sc1 = ggplot(Sept21.analysis) + geom_point(aes(pct.vote.rep, series_complete_pop_pct), color = '#24d0bc', size = 4) + 
+      labs(y = "% Pop. Vax", x = "State Vote Share for Trump (2020)") +
+      theme_classic()
+sc_plots$sc2 = ggplot(Sept21.analysis) + geom_point(aes(med.income, series_complete_pop_pct), color = '#24d0bc', size = 4) + 
+  labs(y = "% Pop. Vax", x = "State Median Income") +    
+  theme_classic()
+sc_plots$sc3 = ggplot(Sept21.analysis) + geom_point(aes(hits.1, series_complete_pop_pct), color = '#24d0bc', size = 4) + 
+      labs(y = "% Pop. Vax", x = "Jan-Sept Search Volume for 'COVID Vaccine'") +
+      theme_classic()
+
+grid.arrange(sc_plots$sc1, sc_plots$sc2, sc_plots$sc3,
+ ncol = 2, top="Predictor Variables Associated with State Vaccination Rates")
+
+```
+
+```{r}
 ##histogram of outcome variable
 
-hist(Jan01.analysis$series_complete_pop_pct)
-hist(Jan01.analysis$admin_per_100k)
+ggplot(Jan01.analysis) + geom_histogram(aes(series_complete_pop_pct), color = "black", fill = '#24d0bc', binwidth = 4, bins =8) + 
+      ggtitle("Percent of Population Fully Vaccinated by State") + 
+      labs(x = "State % Population Vaccinated") +
+      theme_classic()
 
+ggplot(Jan01.analysis) + geom_histogram(aes(admin_per_100k), color = "black", fill = '#24d0bc', binwidth = 7125, bins =8) + 
+      ggtitle("Vaccines Administered Per 100,000 Residents by State") + 
+      labs(x = "Vaccines Administered Per 100k Residents") +
+      theme_classic()
+```
 
+```{r}
 ##Linear model
 
 model1 <- lm(series_complete_pop_pct ~ pct.vote.rep + pct.white + pct.black + hits.1 + hits.2 + hits.3 + hits.4 + hits.5 + hits.6 + hits.7 + hits.8 + hits.9 + hits.10 + hits.11 + hits.12 , data = Jan01.analysis)
@@ -582,5 +639,9 @@ summary(model2)
 ```{r eval = FALSE}
 save.image(file = "shared_work_space.RData")
 ```
+
+# Conclusion
+
+Include a link to the github repository
 
 # References
