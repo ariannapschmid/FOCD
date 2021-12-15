@@ -137,7 +137,7 @@ hits.results.sept %>%
 
 ```
 
-Next, we are interested in getting the count of states that actually have a Google Trends ranking for each search term. We do this to ensure we are using search terms that are popular enough to have generated a hit rate, which will allow us to actually conduct our analysis. We accomplish this through the user-created get.search.terms() function. This function takes the hits results object from get.hit.results() as an argument, and returns the total number of states that have a reported hit rate for each search term in "k". Again, the function is called 3 times for each time period, and results are saved to the objects search.terms.jan, search.terms.june, and search.terms.sept. As an example, we see in Table 6 that for April-June, "covid vaccine," "covid vaccine near me," and	"covid vaccine side effects" have reported hit rates in all 50 states and Washington DC. On the other hand, "covid vaccine microchip" was only searched often enough to generate a hit rate in 17 states. 
+Next, we are interested in getting the count of states that actually have a Google Trends ranking for each search term. We do this to ensure we are using search terms that are popular enough to have generated a hit rate, which will allow us to actually conduct our analysis. We accomplish this through the user-created get.search.terms() function. This function takes the hits results object from get.hit.results() as an argument, and returns the total number of states that have a reported hit rate for each search term in "k". Again, the function is called 3 times for each time period, and results are saved to the objects search.terms.jan, search.terms.june, and search.terms.sept. As an example, we see in Table 3 that for April-June, "covid vaccine," "covid vaccine near me," and	"covid vaccine side effects" have reported hit rates in all 50 states and Washington DC. On the other hand, "covid vaccine microchip" was only searched often enough to generate a hit rate in 17 states. 
 
 
 ```{r eval = FALSE, echo = FALSE}
@@ -484,6 +484,8 @@ June21.analysis <- join.gtrends.vaccine(hits.results.june,vax.June21)
 
 ## 1. Correlation Analysis
 
+The three data sets Jan01.analysis, Sept21.analysis, and June21.analysis are used as arguments for the user-defined function get.correlations() and results are saved to the three objects Jan01.correlations, Sept21.correlations, and June21.correlations respectively. This function calculates the correlation between each search term (as defined in vector "k") and series_complete_pop_pct (percentage of the population in each state that has completed their vaccine series) along with the p value.
+
 ```{r eval = FALSE}
 
 ## This function pulls the correlations for all 3 data sets 
@@ -512,7 +514,6 @@ get.correlations <- function(month.analysis){
       correlations %<>% rename(var_name = j, search = k)
     
       print(correlations)
-
 }
 
 Jan01.correlations <- get.correlations(Jan01.analysis)
@@ -520,32 +521,52 @@ Sept21.correlations <- get.correlations(Sept21.analysis)
 June21.correlations <- get.correlations(June21.analysis)
 
 ```
+Results from Jan01.correlations and June21.correlations show that the correlation patterns are fairly similar for January-September and for April-June. In both cases, the more mainstream searches are positively correlated, and the myth-related searches are negatively correlated (with the exception of April-June, where infertility has a small positive correlation).
 
-```{r}
+On the other hand, correlation patterns from Sept21.correlations are very different. Our results show for July-September searches, nearly all the search terms have a negative correlation. This is likely because most people in states with high vaccination rates had already been vaccinated by July. As a result, in these states, there are less people searching for vaccine information after July. Therefore in general, more of the vaccine searches (of all types) were happening in low vaccine rate states during July-September. This explains why 'covid vaccine' searches are positively correlated with vaccine rates when looking at the overall January-September searches-- but when just looking at July-September, they are negatively correlated since vaccinated people were no longer searching for vaccine info.
+The table below shows these correlation patterns for all three time periods.
+
+```{r echo = FALSE}
+
+a <- Jan01.correlations %>% select(var_name,search,estimate) 
+est <- cbind(a,June21.correlations$estimate,Sept21.correlations$estimate)
+
+knitr::kable(est,
+  col.names = c("var_name","search","Jan-Sept","Apr-June", "Jul-Sept"),           
+  caption = 'Correlations Between Search Hits and % Population Vaccinated'
+)
+```
+
+The tables below show the different correlation patterns between searches for 'COVID Vaccine' and State Vaccination rates in both time periods January-September and July-September. We see a statistically significant positive correlation for the entire span of Jan-Sept, and a negative correlation when we restrict ourselves to July-Sept.
+
+
+```{r, figures-side, fig.show="hold", out.width="50%", fig.height = 4, fig.width = 5, echo = FALSE}
 ##Plotting of correlations
 
 #Jan-Sept Searches
 # using series_complete_pop_pct as measure for state vaccination rate                
-ggplot(Jan01.analysis) + geom_point(aes(hits.1, series_complete_pop_pct), color = '#24d0bc', size = 4) + 
-      labs(y = "State % Pop. Completed Vax Series", x = "Jan-Sept Search Volume for 'COVID Vaccine'") +
-      ggtitle("Searches for 'COVID Vaccine' are Strongly Correlated with State Vax Rates") + 
-      theme_classic()
+ggplot(Jan01.analysis) + geom_point(aes(hits.1, series_complete_pop_pct), color = '#24d0bc', size = 3) + 
+      labs(y = "State % Pop. Completed Vax Series", x = "Search Volume for 'COVID Vaccine'") +
+      ggtitle("January-September") + 
+      theme(axis.text=element_text(size=14), axis.title=element_text(size=14),
+            plot.title = element_text(hjust = 1.5, vjust = 0.5))
 
-ggsave("covid.correlation.Jan.png")
-```
-```{r}
+#ggsave("covid.correlation.Jan.png")
 
-##Plotting of correlations continued
 
 #July-September Searches
 # using series_complete_pop_pct as measure for state vaccination rate                
-ggplot(Sept21.analysis) + geom_point(aes(hits.1, series_complete_pop_pct), color = '#24d0bc', size = 4) + 
-      labs(y = "State % Pop. Completed Vax Series", x = "July-Sept Search Volume for 'COVID Vaccine'") +
-      ggtitle("July-Sept Searches for 'COVID Vaccine' Relationship with State Vax Rates") + 
-      theme_classic()
+ggplot(Sept21.analysis) + geom_point(aes(hits.1, series_complete_pop_pct), color = '#24d0bc', size = 3) + 
+      labs(y = "State % Pop. Completed Vax Series", x = "Search Volume for 'COVID Vaccine'") +
+      ggtitle("") +
+      theme(axis.text=element_text(size=14), axis.title=element_text(size=14))
 
-ggsave("covid.correlation.Sept.png")
+
+#ggsave("covid.correlation.Sept.png")
 ```
+
+Very few of the correlations are statistically significant at level .05. Hence, we will incorporate the social demographic variables from Data Collection Part 3 as covariates for a regression analysis.
+
 ## 2. Regression Analysis
 Given the lack of significant results in our correlation analysis, we next sought to use linear regression to determine the primary predictors of state vaccination rates. 
 
