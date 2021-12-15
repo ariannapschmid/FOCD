@@ -451,6 +451,10 @@ vax.Sept21 %<>% select(-c(pct.vote.rep.x,med.income.x,pct.18.to.24.x,pct.25.to.6
 vax.Sept21 %<>% rename(pct.vote.rep = pct.vote.rep.y, med.income = med.income.y, pct.18.to.24 = pct.18.to.24.y,
                        pct.25.to.64 = pct.25.to.64.y, pct.65.over = pct.65.over.y)
 
+
+vax.Sept21$population <- as.numeric(vax.Sept21$population)
+vax.June21$population <- as.numeric(vax.June21$population)
+
 ```
 
 
@@ -471,7 +475,7 @@ Finally, the three gtrends datasets from Part 1 (hits.results.jan, hits.results.
 join.gtrends.vaccine <- function (hits.results.month,vax.month){
   
   month.analysis <- vax.month %>% 
-      select(location,date, admin_per_100k, series_complete_pop_pct,
+      select(location,date, admin_per_100k, series_complete_pop_pct, population,
              pct.vote.rep, med.income, pct.18.to.24, pct.25.to.64, pct.65.over, 
              pct.white, pct.black, pct.hispanic, pct.asian, pct.other.multiple) %>% 
         full_join(hits.results.month, by = "location") %>%
@@ -527,7 +531,7 @@ Sept21.correlations <- get.correlations(Sept21.analysis)
 June21.correlations <- get.correlations(June21.analysis)
 
 ```
-Results from Jan01.correlations and June21.correlations show that the correlation patterns are fairly similar for January-September and for April-June. In both cases, the more mainstream searches are positively correlated, and the myth-related searches are negatively correlated (with the exception of April-June, where infertility has a small positive correlation).
+Results from Jan01.correlations and June21.correlations show that the correlation patterns are fairly similar for January-September and for April-June. In both cases, the more mainstream searches are positively correlated, and most of the myth-related searches are negatively correlated (with the exception of April-June, where infertility has a small positive correlation). 'Covid vaccine microchip' has a positive correlation in both the January-September and the April-June time frame, so that search does not follow the pattern of the other myth or fringe-related searches.
 
 On the other hand, correlation patterns from Sept21.correlations are very different. Our results show for July-September searches, nearly all the search terms have a negative correlation. This is likely because most people in states with high vaccination rates had already been vaccinated by July. As a result, in these states, there are less people searching for vaccine information after July. Therefore in general, more of the vaccine searches (of all types) were happening in low vaccine rate states during July-September. This explains why 'covid vaccine' searches are positively correlated with vaccine rates when looking at the overall January-September searches-- but when just looking at July-September, they are negatively correlated since vaccinated people were no longer searching for vaccine info (see Figure 1 below). Table 7 shows these correlation patterns for all three time periods.
 
@@ -557,7 +561,8 @@ cor_plots$cor1 = ggplot(Jan01.analysis) +
                 labs(y = "", x = "Search Volume") +
                 ggtitle(" \n January-September") + 
                 theme(axis.text=element_text(size=10), axis.title=element_text(size=10),
-                      plot.title = element_text(hjust = 0.5, vjust = 0.5, size = 10))
+                      plot.title = element_text(hjust = 0.5, vjust = 0.5, size = 10)) +
+                theme_classic()
 
 ggsave("covid.correlation.Jan.png")
 
@@ -568,7 +573,8 @@ cor_plots$cor2 = ggplot(Sept21.analysis) +
                 labs( y = "", x = "Search Volume") +
                 ggtitle(" \n July-September") +
                 theme(axis.text=element_text(size=10), axis.title=element_text(size=10),
-                 plot.title = element_text(hjust = 0.5, vjust = 0.5, size = 10 ))
+                      plot.title = element_text(hjust = 0.5, vjust = 0.5, size = 10 )) +
+                theme_classic()
 
 
 ggsave("covid.correlation.Sept.png")
@@ -582,13 +588,14 @@ grid.arrange(cor_plots$cor1, cor_plots$cor2,
 Still, there are very few cases where we have statistically significant correlations at level .05. For this reason, we will incorporate the social demographic variables from Data Collection Part 3 as covariates for a regression analysis to see if, after controlling for demographic variables, any of the search term hit rates are shown to be significant predictors of state vaccination rates.
 
 ## 2. Regression Analysis
-Given the lack of significant results in our correlation analysis, we next sought to use linear regression to determine the primary predictors of state vaccination rates. 
+The goal of the regression analysis is to determine the primary predictors for state level vaccination rates, and to determine if, after controlling for state-level demographic factors, any of the Google search terms are significant predictors of vaccination rates. For the regression analysis, we will use the overall Google search hit rates from January-September, 2021. 
+
+We started with a descriptive analysis, by plotting all of our potential predictors against state level vaccination rates to determine if any of them have an association with our outcome of interest. This review showed that the 2020 vote share for Donald Trump and state median income had some association with state vaccination rates, but race and age did not seem to be related. As was indicated in our correlation analysis, only the search hit rates for 'COVID vaccine' and 'COVID vaccine pregnant' seemed to be related to state vaccination rates. 
 
 ```{r include = FALSE}
 # Plotting and regression analysis
 
-Jan01.analysis %>% select(series_complete_pop_pct, pct.vote.rep,med.income,
-                          pct.18.to.24,pct.25.to.64,pct.65.over) %>%
+Jan01.analysis %>% select(series_complete_pop_pct, pct.vote.rep,med.income, population, pct.18.to.24,pct.25.to.64,pct.65.over) %>%
                           plot()
 
 ##percent republican and median income seem to have a linear relationship with series_complete_pop_pct; age does not seem to have any relationship with vax rates
@@ -614,26 +621,34 @@ Jan01.analysis %>% select(series_complete_pop_pct, hits.9,hits.10,hits.11,hits.1
 
 #No strong relationships here
 ```
-```{r echo = FALSE}
+
+```{r echo = FALSE, fig.height = 4}
 
 sc_plots = list()
 
-sc_plots$sc1 = ggplot(Sept21.analysis) + geom_point(aes(pct.vote.rep, series_complete_pop_pct), color = '#24d0bc', size = 4) + 
+sc_plots$sc1 = ggplot(Sept21.analysis) + geom_point(aes(pct.vote.rep, series_complete_pop_pct), color = '#24d0bc', size = 3) + 
       labs(y = "% Pop. Vax", x = "State Vote Share for Trump (2020)") +
       theme_classic()
-sc_plots$sc2 = ggplot(Sept21.analysis) + geom_point(aes(med.income, series_complete_pop_pct), color = '#24d0bc', size = 4) + 
-  labs(y = "% Pop. Vax", x = "State Median Income") +    
+sc_plots$sc2 = ggplot(Sept21.analysis) + geom_point(aes(med.income, series_complete_pop_pct), color = '#24d0bc', size = 3) + 
+  labs(y = " ", x = "State Median Income") +    
   theme_classic()
-sc_plots$sc3 = ggplot(Sept21.analysis) + geom_point(aes(hits.1, series_complete_pop_pct), color = '#24d0bc', size = 4) + 
-      labs(y = "% Pop. Vax", x = "Jan-Sept Search Volume for 'COVID Vaccine'") +
+sc_plots$sc3 = ggplot(Sept21.analysis) + geom_point(aes(hits.1, series_complete_pop_pct), color = '#24d0bc', size = 3) + 
+      labs(y = "% Pop. Vax", x = "Search Volume for 'COVID Vaccine'") +
+      theme_classic()
+sc_plots$sc4 = ggplot(Sept21.analysis) + geom_point(aes(hits.5, series_complete_pop_pct), color = '#24d0bc', size = 3) + 
+      labs(y = " ", x = "Search Volume for 'COVID Vaccine Pregnant'") +
       theme_classic()
 
-grid.arrange(sc_plots$sc1, sc_plots$sc2, sc_plots$sc3,
+grid.arrange(sc_plots$sc1, sc_plots$sc2, sc_plots$sc3, sc_plots$sc4,
  ncol = 2, top="Predictor Variables Associated with State Vaccination Rates")
 
 ```
+The plot of state vote share for Trump indicates that there is an extreme outlier in the data--this is Washington, DC, which had an extremely low vote share for Trump (about 5% of all votes cast in the presidential election). Therefore, we will run our regression analysis with and without that outlier to see how it impacts results. 
 
-```{r}
+Next, we created a histogram of our outcome variable to check its distribution and verify that it is not highly skewed. The histogram shows that there is no major skew in the distribution of the outcome variable. 
+
+```{r echo = FALSE, fig.height = 3.5}
+
 ##histogram of outcome variable
 
 ggplot(Jan01.analysis) + geom_histogram(aes(series_complete_pop_pct), color = "black", fill = '#24d0bc', binwidth = 4, bins =8) + 
@@ -641,16 +656,14 @@ ggplot(Jan01.analysis) + geom_histogram(aes(series_complete_pop_pct), color = "b
       labs(x = "State % Population Vaccinated") +
       theme_classic()
 
-ggplot(Jan01.analysis) + geom_histogram(aes(admin_per_100k), color = "black", fill = '#24d0bc', binwidth = 7125, bins =8) + 
-      ggtitle("Vaccines Administered Per 100,000 Residents by State") + 
-      labs(x = "Vaccines Administered Per 100k Residents") +
-      theme_classic()
 ```
 
 ```{r}
-##Linear model
+##Linear model with all possible predictors
 
-model1 <- lm(series_complete_pop_pct ~ pct.vote.rep + pct.white + pct.black + hits.1 + hits.2 + hits.3 + hits.4 + hits.5 + hits.6 + hits.7 + hits.8 + hits.9 + hits.10 + hits.11 + hits.12 , data = Jan01.analysis)
+model1 <- lm(series_complete_pop_pct ~ pct.vote.rep + pct.white + pct.black + pct.hispanic + pct.asian + pct.other.multiple + med.income + 
+            population + pct.18.to.24 + pct.25.to.64 + pct.65.over + hits.1 + hits.2 + hits.3 + hits.4 + hits.5 + hits.6 + hits.7 + hits.8 + 
+            hits.9 + hits.10 + hits.11 + hits.12 , data = Jan01.analysis)
 
 summary(model1)
 
@@ -662,6 +675,12 @@ hist(residuals(model1))
 
 plot(fitted(model1), residuals(model1))
 abline(h = 0, lty = 2)
+```
+
+
+```{r}
+
+##Run linear model with just trump vote share. run models with and without washington dc
 
 #Linear model with interaction
 #When adding interaction between hits.1 and % who voted republican, the main effects and the interaction are all not significant. Need to think about what that means...
@@ -671,12 +690,13 @@ model2 <- lm(series_complete_pop_pct ~ pct.vote.rep + pct.black + hits.1  + hits
 summary(model2)
 ```
 
-```{r eval = FALSE}
+```{r include = FALSE}
 save.image(file = "shared_work_space.RData")
 ```
 
 # Conclusion
 
 Include a link to the github repository
+submit: RMD file, workspace .Rdata file, PDF of report
 
 # References
