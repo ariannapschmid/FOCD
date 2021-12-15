@@ -29,6 +29,12 @@ library(knitr)
 library(grid)
 library(gridExtra)
 library(lattice)
+```
+
+
+``` {r include = FALSE}
+
+###UPDATE WORKING DIRECTORY TO MATCH THE LOCATION WHERE WORKSPACE IMAGE .RDATA FILE IS SAVED###
 
 load("shared_work_space.RData")
 
@@ -484,7 +490,7 @@ June21.analysis <- join.gtrends.vaccine(hits.results.june,vax.June21)
 
 ## 1. Correlation Analysis
 
-The three data sets Jan01.analysis, Sept21.analysis, and June21.analysis are used as arguments for the user-defined function get.correlations() and results are saved to the three objects Jan01.correlations, Sept21.correlations, and June21.correlations respectively. This function calculates the correlation between each search term (as defined in vector "k") and series_complete_pop_pct (percentage of the population in each state that has completed their vaccine series) along with the p value.
+The three data sets Jan01.analysis, Sept21.analysis, and June21.analysis are used as arguments for the user-defined function get.correlations() and results are saved to the three objects Jan01.correlations, Sept21.correlations, and June21.correlations respectively. This function calculates the correlation between the state level hit rate for each search term (as defined in vector "k") and series_complete_pop_pct (percentage of the population in each state that has completed their vaccine series), along with the p value.
 
 ```{r eval = FALSE}
 
@@ -523,24 +529,23 @@ June21.correlations <- get.correlations(June21.analysis)
 ```
 Results from Jan01.correlations and June21.correlations show that the correlation patterns are fairly similar for January-September and for April-June. In both cases, the more mainstream searches are positively correlated, and the myth-related searches are negatively correlated (with the exception of April-June, where infertility has a small positive correlation).
 
-On the other hand, correlation patterns from Sept21.correlations are very different. Our results show for July-September searches, nearly all the search terms have a negative correlation. This is likely because most people in states with high vaccination rates had already been vaccinated by July. As a result, in these states, there are less people searching for vaccine information after July. Therefore in general, more of the vaccine searches (of all types) were happening in low vaccine rate states during July-September. This explains why 'covid vaccine' searches are positively correlated with vaccine rates when looking at the overall January-September searches-- but when just looking at July-September, they are negatively correlated since vaccinated people were no longer searching for vaccine info(see Figure 1 below).
-Table 7 shows these correlation patterns for all three time periods.
+On the other hand, correlation patterns from Sept21.correlations are very different. Our results show for July-September searches, nearly all the search terms have a negative correlation. This is likely because most people in states with high vaccination rates had already been vaccinated by July. As a result, in these states, there are less people searching for vaccine information after July. Therefore in general, more of the vaccine searches (of all types) were happening in low vaccine rate states during July-September. This explains why 'covid vaccine' searches are positively correlated with vaccine rates when looking at the overall January-September searches-- but when just looking at July-September, they are negatively correlated since vaccinated people were no longer searching for vaccine info (see Figure 1 below). Table 7 shows these correlation patterns for all three time periods.
 
 ```{r echo = FALSE}
 
-a <- Jan01.correlations %>% select(var_name,search,estimate) 
-est <- cbind(a,June21.correlations$estimate,Sept21.correlations$estimate)
+a <- Jan01.correlations %>% select(var_name,search,estimate, p.value) 
+est <- cbind(a,June21.correlations$estimate,June21.correlations$p.value, Sept21.correlations$estimate, Sept21.correlations$p.value)
 
-knitr::kable(est,
-  col.names = c("var_name","search","Jan-Sept","Apr-June", "Jul-Sept"),           
+knitr::kable(est, digits = 3,
+  col.names = c("var_name","search","Jan-Sept","P-Value", "Apr-June","P-Value", "Jul-Sept", "P-Value"),           
   caption = 'Correlations Between Search Hits and % Population Vaccinated'
 )
 ```
 
-Figure 1 shows the different correlation patterns between searches for 'COVID Vaccine' and State Vaccination rates in two time periods. We see a statistically significant positive correlation for the entire span of January-September, and a negative correlation when we restrict ourselves to July-September.
+Figure 1 shows the different correlation patterns between searches for 'COVID Vaccine' and state vaccination rates in two time periods. We see a statistically significant positive correlation for the entire span of January-September, and a negative correlation when we restrict ourselves to only searches done in the July-September time period.
 
 
-```{r, echo = FALSE, fig.height = 4}
+```{r, echo = FALSE, message = FALSE, fig.height = 4}
 ##Plotting of correlations
 
 cor_plots = list()
@@ -574,7 +579,7 @@ grid.arrange(cor_plots$cor1, cor_plots$cor2,
  )
 ```
 
-Still, there are very few cases where we have statistically significant correlations at level .05. For this reason, we will incorporate the social demographic variables from Data Collection Part 3 as covariates for a regression analysis.
+Still, there are very few cases where we have statistically significant correlations at level .05. For this reason, we will incorporate the social demographic variables from Data Collection Part 3 as covariates for a regression analysis to see if, after controlling for demographic variables, any of the search term hit rates are shown to be significant predictors of state vaccination rates.
 
 ## 2. Regression Analysis
 Given the lack of significant results in our correlation analysis, we next sought to use linear regression to determine the primary predictors of state vaccination rates. 
