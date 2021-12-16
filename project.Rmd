@@ -29,6 +29,8 @@ library(knitr)
 library(grid)
 library(gridExtra)
 library(lattice)
+library(MASS)
+library(stargazer)
 ```
 
 
@@ -107,7 +109,7 @@ get.hits.results <-  function(date){
       left_join(Keyword11$interest_by_region, by = "location") %>%
       left_join(Keyword12$interest_by_region, by = "location") %>%
       as_tibble() %>%
-      select(c(1,2,6,10,14,18,22,26,30,34,38,42,46))
+      dplyr::select(c(1,2,6,10,14,18,22,26,30,34,38,42,46))
     
     hits_results %<>% rename( hits.1 = hits.x, 
                           hits.2 = hits.y,
@@ -301,11 +303,11 @@ The tables below list the top 10 states by percent of the population fully vacci
 ```{r include=FALSE}
 
 x <- vax.June21 %>%
-  select(location, series_complete_pop_pct, admin_per_100k) %>%
+  dplyr::select(location, series_complete_pop_pct, admin_per_100k) %>%
   arrange(desc(series_complete_pop_pct))
 
 y <- vax.Sept21 %>%
-  select(location, series_complete_pop_pct, admin_per_100k) %>%
+  dplyr::select(location, series_complete_pop_pct, admin_per_100k) %>%
   arrange(desc(series_complete_pop_pct))
 
 
@@ -370,7 +372,7 @@ vax.Sept21 <- vax.Sept21 %>%
   left_join(state_pop, by = "location")
 
 vax.Sept21 %>%
-  select(location, population, administered, admin_per_100k)
+  dplyr::select(location, population, administered, admin_per_100k)
 ```
 
 ```{r eval = FALSE, echo = FALSE}
@@ -378,7 +380,7 @@ vax.Sept21 %>%
 ## Percent of population by state that have been fully vaccinated as of September 21
 
 vax.Sept21 %>%
-  select(location, series_complete_pop_pct) %>%
+  dplyr::select(location, series_complete_pop_pct) %>%
   arrange(series_complete_pop_pct) %>%
   kable(col.names = c('State', 'Percent Pop. Fully vaccinated'), caption = " State Level Percent of Population Fully Vaccinated by September 2021")
 ```
@@ -404,7 +406,7 @@ getwd()
 setwd("/Users/ariannaschmid/Desktop/SURVMETH 727")
 
 percent.rep <- read_excel("vote.xlsx", sheet = "Sheet1")
-percent.rep %<>% select (state,rep_percent) %>% rename (pct.vote.rep = rep_percent, location = state) %>% arrange(location)
+percent.rep %<>% dplyr::select (state,rep_percent) %>% rename (pct.vote.rep = rep_percent, location = state) %>% arrange(location)
 
  
 ## Get median household income info from 2018. Source is https://www2.census.gov/programs-surveys/cps/tables/time-series/historical-income-households/h08.xls
@@ -441,12 +443,12 @@ vax.Sept21 <- vax.Sept21 %>%
 
 
 ## Arianna's code to fix tables. Don't rerun.
-vax.June21 %<>% select(-c(pct.vote.rep.x,med.income.x,pct.18.to.24.x,pct.25.to.64.x,pct.65.over.x,
+vax.June21 %<>% dplyr::select(-c(pct.vote.rep.x,med.income.x,pct.18.to.24.x,pct.25.to.64.x,pct.65.over.x,
                          )) 
 vax.June21 %<>% rename(pct.vote.rep = pct.vote.rep.y, med.income = med.income.y, pct.18.to.24 = pct.18.to.24.y,
                        pct.25.to.64 = pct.25.to.64.y, pct.65.over = pct.65.over.y)
 
-vax.Sept21 %<>% select(-c(pct.vote.rep.x,med.income.x,pct.18.to.24.x,pct.25.to.64.x,pct.65.over.x,
+vax.Sept21 %<>% dplyr::select(-c(pct.vote.rep.x,med.income.x,pct.18.to.24.x,pct.25.to.64.x,pct.65.over.x,
                          )) 
 vax.Sept21 %<>% rename(pct.vote.rep = pct.vote.rep.y, med.income = med.income.y, pct.18.to.24 = pct.18.to.24.y,
                        pct.25.to.64 = pct.25.to.64.y, pct.65.over = pct.65.over.y)
@@ -475,7 +477,7 @@ Finally, the three gtrends datasets from Part 1 (hits.results.jan, hits.results.
 join.gtrends.vaccine <- function (hits.results.month,vax.month){
   
   month.analysis <- vax.month %>% 
-      select(location,date, admin_per_100k, series_complete_pop_pct, population,
+      dplyr::select(location,date, admin_per_100k, series_complete_pop_pct, population,
              pct.vote.rep, med.income, pct.18.to.24, pct.25.to.64, pct.65.over, 
              pct.white, pct.black, pct.hispanic, pct.asian, pct.other.multiple) %>% 
         full_join(hits.results.month, by = "location") %>%
@@ -537,7 +539,7 @@ On the other hand, correlation patterns from Sept21.correlations are very differ
 
 ```{r echo = FALSE}
 
-a <- Jan01.correlations %>% select(var_name,search,estimate, p.value) 
+a <- Jan01.correlations %>% dplyr::select(var_name,search,estimate, p.value) 
 est <- cbind(a,June21.correlations$estimate,June21.correlations$p.value, Sept21.correlations$estimate, Sept21.correlations$p.value)
 
 knitr::kable(est, digits = 3,
@@ -595,28 +597,29 @@ We started with a descriptive analysis, by plotting all of our potential predict
 ```{r include = FALSE}
 # Plotting and regression analysis
 
-Jan01.analysis %>% select(series_complete_pop_pct, pct.vote.rep,med.income, population, pct.18.to.24,pct.25.to.64,pct.65.over) %>%
+Jan01.analysis %>% 
+  dplyr::select(series_complete_pop_pct, pct.vote.rep, med.income, population, pct.18.to.24,pct.25.to.64,pct.65.over) %>%
                           plot()
 
 ##percent republican and median income seem to have a linear relationship with series_complete_pop_pct; age does not seem to have any relationship with vax rates
 
-Jan01.analysis %>% select(series_complete_pop_pct, pct.white,pct.black,pct.hispanic,pct.asian,pct.other.multiple) %>% 
+Jan01.analysis %>% dplyr::select(series_complete_pop_pct, pct.white,pct.black,pct.hispanic,pct.asian,pct.other.multiple) %>% 
                           plot()
 
 ##None of the race variables seem to be related to vax rates
 
 
-Jan01.analysis %>% select(series_complete_pop_pct, hits.1,hits.2,hits.3,hits.4) %>% 
+Jan01.analysis %>% dplyr::select(series_complete_pop_pct, hits.1,hits.2,hits.3,hits.4) %>% 
                           plot()
 
 #Hits1 is related; other plots are widely scattered
 
-Jan01.analysis %>% select(series_complete_pop_pct, hits.5,hits.6,hits.7,hits.8) %>% 
+Jan01.analysis %>% dplyr::select(series_complete_pop_pct, hits.5,hits.6,hits.7,hits.8) %>% 
                           plot()
 
 #Hits5 has some relationship; others not so much
 
-Jan01.analysis %>% select(series_complete_pop_pct, hits.9,hits.10,hits.11,hits.12) %>% 
+Jan01.analysis %>% dplyr::select(series_complete_pop_pct, hits.9,hits.10,hits.11,hits.12) %>% 
                           plot()
 
 #No strong relationships here
@@ -626,17 +629,17 @@ Jan01.analysis %>% select(series_complete_pop_pct, hits.9,hits.10,hits.11,hits.1
 
 sc_plots = list()
 
-sc_plots$sc1 = ggplot(Sept21.analysis) + geom_point(aes(pct.vote.rep, series_complete_pop_pct), color = '#24d0bc', size = 3) + 
+sc_plots$sc1 = ggplot(Jan01.analysis) + geom_point(aes(pct.vote.rep, series_complete_pop_pct), color = '#24d0bc', size = 3) + 
       labs(y = "% Pop. Vax", x = "State Vote Share for Trump (2020)") +
       theme_classic()
-sc_plots$sc2 = ggplot(Sept21.analysis) + geom_point(aes(med.income, series_complete_pop_pct), color = '#24d0bc', size = 3) + 
+sc_plots$sc2 = ggplot(Jan01.analysis) + geom_point(aes(med.income, series_complete_pop_pct), color = '#24d0bc', size = 3) + 
   labs(y = " ", x = "State Median Income") +    
   theme_classic()
-sc_plots$sc3 = ggplot(Sept21.analysis) + geom_point(aes(hits.1, series_complete_pop_pct), color = '#24d0bc', size = 3) + 
+sc_plots$sc3 = ggplot(Jan01.analysis) + geom_point(aes(hits.1, series_complete_pop_pct), color = '#24d0bc', size = 3) + 
       labs(y = "% Pop. Vax", x = "Search Volume for 'COVID Vaccine'") +
       theme_classic()
-sc_plots$sc4 = ggplot(Sept21.analysis) + geom_point(aes(hits.5, series_complete_pop_pct), color = '#24d0bc', size = 3) + 
-      labs(y = " ", x = "Search Volume for 'COVID Vaccine Pregnant'") +
+sc_plots$sc4 = ggplot(Jan01.analysis) + geom_point(aes(hits.5, series_complete_pop_pct), color = '#24d0bc', size = 3) + 
+      labs(y = " ", x = "Search Volume for 'COVID Vax Pregnant'") +
       theme_classic()
 
 grid.arrange(sc_plots$sc1, sc_plots$sc2, sc_plots$sc3, sc_plots$sc4,
@@ -647,48 +650,131 @@ The plot of state vote share for Trump indicates that there is an extreme outlie
 
 Next, we created a histogram of our outcome variable to check its distribution and verify that it is not highly skewed. The histogram shows that there is no major skew in the distribution of the outcome variable. 
 
-```{r echo = FALSE, fig.height = 3.5}
+```{r echo = FALSE, fig.height = 3.6}
 
 ##histogram of outcome variable
 
-ggplot(Jan01.analysis) + geom_histogram(aes(series_complete_pop_pct), color = "black", fill = '#24d0bc', binwidth = 4, bins =8) + 
+ggplot(Jan01.analysis) + geom_histogram(aes(series_complete_pop_pct), color = "black", fill = '#24d0bc', binwidth = .04, bins =8) + 
       ggtitle("Percent of Population Fully Vaccinated by State") + 
       labs(x = "State % Population Vaccinated") +
       theme_classic()
 
 ```
 
-```{r}
-##Linear model with all possible predictors
+```{r eval= FALSE, echo = FALSE}
+##Put % pop vaccinated variable on same scale as other demographic percentage variables
+Jan01.analysis <- Jan01.analysis %>% 
+                  mutate(series_complete_pop_pct = series_complete_pop_pct/100)
+```
 
-model1 <- lm(series_complete_pop_pct ~ pct.vote.rep + pct.white + pct.black + pct.hispanic + pct.asian + pct.other.multiple + med.income + 
+We fit our linear model using the backwards stepwise selection method, which starts with a full model, removes covariates one by one, and then determines which variables to retain based on pre-determined criteria. In this case, we employed the stepAIC() function, which utilizes the Akaike Information Criterion to determine which covariates to retain in the model. 
+
+```{r include = FALSE}
+##Linear model with backwards stepwise selection
+
+full.model <- lm(series_complete_pop_pct ~ pct.vote.rep + pct.white + pct.black + pct.hispanic + pct.asian + pct.other.multiple + med.income + 
             population + pct.18.to.24 + pct.25.to.64 + pct.65.over + hits.1 + hits.2 + hits.3 + hits.4 + hits.5 + hits.6 + hits.7 + hits.8 + 
             hits.9 + hits.10 + hits.11 + hits.12 , data = Jan01.analysis)
 
-summary(model1)
+summary(full.model)
 
+#Stepwise regression model
+
+step.model <- stepAIC(full.model, direction = "backward", 
+                      trace = FALSE)
+summary(step.model)
+```
+
+```{r include = FALSE}
 #Check that residuals are normally distributed
 
-hist(residuals(model1))
+hist(residuals(step.model))
 
 #Check for homoskedasticity in residual variances (looks ok)
 
-plot(fitted(model1), residuals(model1))
+plot(fitted(step.model), residuals(step.model))
 abline(h = 0, lty = 2)
 ```
 
+The stepwise-selected model includes the following covariates: % Trump vote share, % White (race), % Black (race), % Hispanic (race), % Asian (race), % Other (race), % 18-24 (age), % 65+ (age), 'COVID Vaccine' search hits, 'COVID vaccine near me' search hits, 'COVID vaccine safe' search hits, 'COVID vaccine pregnant' search hits, and 'COVID vaccine microchip' search hits. 
 
-```{r}
+Trump vote share and race have negative coefficient estimates, while the age variables have positive coefficient estimates. 'COVID vaccine,' 'COVID vaccine pregnant', and 'COVID vaccine microchip' have positive coefficient estimates, while the coefficient estimates for 'COVID vaccine near me' and 'COVID vaccine safe' are negative. 
 
-##Run linear model with just trump vote share. run models with and without washington dc
+The adjusted R-squared value for this model is .8894, indicating that this model has a good fit. In addition, a histogram of the residuals shows that they are normally distributed, and a plot of the residual variances shows that there is no evidence of heteroskedasticity. We used a function created by Susan Johnston to make a plot of this model's regression line, as seen below [@susan_e_johnston_quick_2012}. 
 
-#Linear model with interaction
-#When adding interaction between hits.1 and % who voted republican, the main effects and the interaction are all not significant. Need to think about what that means...
+```{r echo=FALSE, message=FALSE, fig.height = 4}
+#Function for regression plot from here: https://sejohnston.com/2012/08/09/a-quick-and-easy-function-to-plot-lm-results-in-r/
+ggplotRegression <- function (fit) {
 
-model2 <- lm(series_complete_pop_pct ~ pct.vote.rep + pct.black + hits.1  + hits.1*pct.vote.rep, data = Jan01.analysis)
+require(ggplot2)
 
-summary(model2)
+ggplot(fit$model, aes_string(x = names(fit$model)[2], y = names(fit$model)[1])) + 
+  geom_point() +
+  stat_smooth(method = "lm", color = "#24d0bc") +
+  labs(title = paste("Adj R2 = ",signif(summary(fit)$adj.r.squared, 5),
+                     "Intercept =",signif(fit$coef[[1]],5 ),
+                     " Slope =",signif(fit$coef[[2]], 5),
+                     " P =",signif(summary(fit)$coef[2,4], 5))) +
+  labs(y = "% Pop. Vax", x = "State Vote Share for Trump (2020)") +
+  theme_classic()
+}
+
+ggplotRegression(step.model)
+
 ```
+
+Next, we removed Washington, DC, which is an outlier for the Trump vote share variable, from the data frame to evaluate the impact that would have on the regression model. When we applied the backwards stepwise selection to the updated dataset, which only included rows for the 50 states, a slightly different list of covariates were included in the final model, as seen in Table 8.  
+
+```{r include = FALSE}
+
+#Drop Washington DC outlier from analysis dataset
+Jan01.analysis2 <- Jan01.analysis[!(Jan01.analysis$location=="District of Columbia"),]
+
+full.model2 <- lm(series_complete_pop_pct ~ pct.vote.rep + pct.white + pct.black + pct.hispanic + pct.asian + pct.other.multiple + med.income + 
+            population + pct.18.to.24 + pct.25.to.64 + pct.65.over + hits.1 + hits.2 + hits.3 + hits.4 + hits.5 + hits.6 + hits.7 + hits.8 + 
+            hits.9 + hits.10 + hits.11 + hits.12 , data = Jan01.analysis2)
+
+summary(full.model2)
+
+#Stepwise regression model
+
+step.model2 <- stepAIC(full.model2, direction = "backward", 
+                      trace = FALSE)
+summary(step.model2)
+
+#Check that residuals are normally distributed
+
+hist(residuals(step.model2))
+
+#Check for homoskedasticity in residual variances (looks ok)
+
+plot(fitted(step.model2), residuals(step.model2))
+abline(h = 0, lty = 2)
+
+```
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE, results="asis"}
+
+stargazer(step.model2,
+          title = "Regression Results Without Washington, DC",
+          dep.var.labels=c("State Pct. Pop. Vaccinated"),
+          covariate.labels=c("Pct. Trump Vote Share","Pct. White","Pct. Black","Pct. Hispanic","Pct. Asian","Pct. Other Race",
+                             "Pct. 18-24","Pct. 24-64","Pct. 65+","'COVID Vaccine' Search","'COVID Vaccine Near Me' Search","'COVID Vaccine Safe' Search",
+                             "'COVID Vaccine Ingredients' Search","'COVID Vaccine Magnet' Search"),
+          type="latex")
+
+```
+The adjusted R-squared for this updated model is .905, indicating a good model fit, and the distributions of the residuals and the residual variances again indicate that the model is not violating any of the key linear regression assumptions. The coefficient estimate for Trump Vote Share in this model is -.45, while in the previous model (run on data that included Washington, DC), the coefficient estimate was -.25. This is a reflection of the impact Washington, DC was having on the regression line by dragging it downwards toward where that data point was located. Below, you can see that the regression line is steeper when Washington, DC is omitted from the analysis. 
+
+```{r echo=FALSE, message=FALSE, fig.height = 4}
+
+ggplotRegression(step.model2)
+
+```
+
+Ultimately, we decided to use the model that omitting Washington, DC as our final analysis model. Washington, DC is unique in that it is a small urban district, rather than a state that includes both urban and rural areas and a greater diversity of people. Therefore, if our goal is to understand how Google searches are impacting state-level vaccination rates, it makes sense to omit the entity that is not a state if it deviates from the trend of the states in meaningful ways.
+
+The final model indicates that there are some vaccine search terms that are predictors of state vaccination rates, but the coefficient estimates are very small. A one unit increase in the search hit rate for 'COVID vaccine' in a state will result in a .4 percentage point increase in vaccination rates, when all other covariates are held constant. By contrast, a one percentage point increase in the 2020 vote share for Trump will result in a 45 percentage point decrease in vaccination rates in a given state, when other covariates are held constant. Overall, the regression analysis shows us that, when demographic factors are controlled for, some of the vaccine search terms are significant predictors for state vaccination rates. However, the coefficient estimates are so small that they are not practically significant, particularly in comparison to the much larger coefficient estimates estimated for vote share, race, and age. 
 
 ```{r include = FALSE}
 save.image(file = "shared_work_space.RData")
@@ -697,6 +783,7 @@ save.image(file = "shared_work_space.RData")
 # Conclusion
 
 Include a link to the github repository
-submit: RMD file, workspace .Rdata file, PDF of report
+
+Submit: RMD file, workspace .Rdata file, PDF of report
 
 # References
