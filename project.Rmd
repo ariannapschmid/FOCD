@@ -774,7 +774,7 @@ ggplotRegression(step.model2)
 
 Ultimately, we decided to use the model that omitting Washington, DC as our final analysis model. Washington, DC is unique in that it is a small urban district, rather than a state that includes both urban and rural areas and a greater diversity of people. Therefore, if our goal is to understand how Google searches are impacting state-level vaccination rates, it makes sense to omit the entity that is not a state if it deviates from the trend of the states in meaningful ways.
 
-The final model indicates that there are some vaccine search terms that are predictors of state vaccination rates, but the coefficient estimates are very small. A one unit increase in the search hit rate for 'COVID vaccine' in a state will result in a .4 percentage point increase in vaccination rates, when all other covariates are held constant. By contrast, a one percentage point increase in the 2020 vote share for Trump will result in a 45 percentage point decrease in vaccination rates in a given state, when other covariates are held constant. Overall, the regression analysis shows us that, when demographic factors are controlled for, some of the vaccine search terms are significant predictors for state vaccination rates. However, the coefficient estimates are so small that they are not practically significant, particularly in comparison to the much larger coefficient estimates estimated for vote share, race, and age. 
+The final model indicates that there are some vaccine search terms that are predictors of state vaccination rates, but the coefficient estimates are very small. A one unit increase in the search hit rate for 'COVID vaccine' in a state will result in a .4 percentage point increase in vaccination rates, when all other covariates are held constant. By contrast, a one percentage point increase in the 2020 vote share for Trump will result in a 45 percentage point decrease in vaccination rates in a given state, when other covariates are held constant. Overall, the regression analysis shows us that, when demographic factors are controlled for, some of the vaccine search terms are significant predictors for state vaccination rates. However, the coefficient estimates are so small that they are not practically significant, particularly in comparison to the much larger coefficient estimates estimated for Trump vote share, race, and age. 
 
 ```{r include = FALSE}
 save.image(file = "shared_work_space.RData")
@@ -782,8 +782,16 @@ save.image(file = "shared_work_space.RData")
 
 # Conclusion
 
-Include a link to the github repository
+In this paper, we tried to determine what relationship there is between state-level COVID-19 vaccine rates and the types of Google searches that are made about vaccines in each state. Additionally, we tried to determine if vaccine myths more commonly searched for in states that also have low vaccination rates, and whether the relationship between COVID vaccine rates and Google searches change between June and September 2021.
 
-Submit: RMD file, workspace .Rdata file, PDF of report
+We addressed these questions by collecting data from several web sources and conducting a correlation and regression analysis. We used gtrendsr() to run queries for 12 different Google search terms from Google Trends, and joined that data with information about state level COVID-19 vaccination rates that we pulled from the CDC's data API. We also collected state demographic information from a variety of websites and loaded those data into R via Excel upload. 
+
+The correlation analysis showed that the for the January-September 2021 search time period, more mainstream searches are positively correlated with vaccination rates, and most of the myth-related searches are negatively correlated, which is the relationship you'd expect given the nature of the data. However, most of the correlations are not significant. 
+
+When looking only at the searches that were done in July-September 2021, nearly all the search terms have a negative correlation. This is likely because most people in states with high vaccination rates had already been vaccinated by July. As a result, in these states, there are less people searching for vaccine information after July. Therefore in general, more of the vaccine searches (of all types) were happening in low vaccine rate states during July-September. But again, most of these correlations are not significant.
+
+A linear regression that was built using backwards stepwise selection shows that there are some vaccine search terms that are predictors of state vaccination rates, but the coefficient estimates are very small. However, the coefficient estimates are so small that they are not practically significant, particularly in comparison to the much larger coefficient estimates estimated for Trump vote share, race, and age.
+
+All of the code and data files for this analysis can be found on this public GitHub repository: https://github.com/ariannapschmid/FOCD.
 
 # References
