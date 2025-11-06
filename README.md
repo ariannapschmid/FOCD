@@ -1,1 +1,1 @@
-Group project for the University of Maryland graduate course: Fundamentals of Computing and Data Display (SURV727)
+Group project for the University of Maryland graduate course: Fundamentals of Computing and Data Display (SURV727). This study examined the relationship, if any, between state level COVID vaccine rates and Google searches for vaccine information.
